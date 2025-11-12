@@ -1,14 +1,17 @@
 <template>
   <Keyboard></Keyboard>
+  <KeyPicker></KeyPicker>
 </template>
 
 <script>
 import Keyboard from './components/Keyboard.vue'
+import KeyPicker from './components/KeyPicker.vue';
 
 export default {
   name: 'App',
   components: {
-    Keyboard
+    Keyboard,
+    KeyPicker
   }
 }
 </script>
