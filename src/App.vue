@@ -1,24 +1,28 @@
 <template>
   <Keyboard></Keyboard>
+  <KeyPicker></KeyPicker>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script>
 import Keyboard from './components/Keyboard.vue'
-import KeyPicker from './components/KeyPicker.vue'
+import KeyPicker from './components/KeyPicker.vue';
 
-export default defineComponent({
+export default {
   name: 'App',
-
   components: {
     Keyboard,
     KeyPicker
-  },
-
-  data () {
-    return {
-      //
-    }
-  },
-})
+  }
+}
 </script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  background-color: lightblue;
+}
+</style>
