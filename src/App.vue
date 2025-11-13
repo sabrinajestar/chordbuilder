@@ -1,10 +1,5 @@
 <template>
-  <v-app>
-    <v-main>
-      <Keyboard/>
-      <KeyPicker/>
-    </v-main>
-  </v-app>
+  <Keyboard></Keyboard>
 </template>
 
 <script lang="ts">

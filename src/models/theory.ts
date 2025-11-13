@@ -8,37 +8,10 @@ class Octave {
     }
 }
 
-export class Note {
+class Note {
     name: string;
     index: number;
     octaveIndex: number;
-
-    static readonly C = new Note("c", 0);
-    static readonly CSHARP = new Note("c#", 1);
-    static readonly D = new Note("d", 2);
-    static readonly DSHARP = new Note("d#", 3);
-    static readonly E = new Note("e", 4);
-    static readonly F = new Note("f", 5);
-    static readonly FSHARP = new Note("f#", 6);
-    static readonly G = new Note("g", 7);
-    static readonly GSHARP = new Note("g#", 8);
-    static readonly A = new Note("a", 9);
-    static readonly ASHARP = new Note("a#", 10);
-    static readonly B = new Note("b", 11);
-    static readonly Notes = [
-        Note.C,
-        Note.CSHARP,
-        Note.D,
-        Note.DSHARP,
-        Note.E,
-        Note.F,
-        Note.FSHARP,
-        Note.G,
-        Note.GSHARP,
-        Note.A,
-        Note.ASHARP,
-        Note.B
-    ];
 
     constructor(name: string, index: number, octaveIndex: number = 3) {
         this.name = name;
@@ -47,29 +20,48 @@ export class Note {
     }
 }
 
+const c = new Note("c", 0);
+const csharp = new Note("c#", 1);
+const d = new Note("d", 2)
+const dsharp = new Note("d#", 3)
+const e = new Note("e", 4)
+const f = new Note("f", 5)
+const fsharp = new Note("f#", 6)
+const g = new Note("g", 7)
+const gsharp = new Note("g#", 8)
+const a = new Note("a", 9)
+const asharp = new Note("a#", 10)
+const b = new Note("b", 11)
+
+const Notes = [c, csharp, d, dsharp, e, f, fsharp, g, gsharp, a, asharp, b]
+
+
+
 class Interval {
     name: string;
     steps: number;
-
-    static readonly PerfectUnison = new Interval("perfect unison", 0);
-    static readonly MinorSecond = new Interval("minor second", 1);
-    static readonly MajorSecond = new Interval("major second", 2);
-    static readonly MinorThird = new Interval("minor third", 3);
-    static readonly MajorThird = new Interval("major third", 4);
-    static readonly PerfectFourth = new Interval("perfect fourth", 5);
-    static readonly DiminishedFifth = new Interval("diminished fifth", 6);
-    static readonly PerfectFifth = new Interval("perfect fifth", 7);
-    static readonly MinorSixth = new Interval("minor sixth", 8);
-    static readonly MajorSixth = new Interval("major sixth", 9);
-    static readonly MinorSeventh = new Interval("minor seventh", 10);
-    static readonly MajorSeventh = new Interval("major seventh", 11);
-    static readonly PerfectOctave = new Interval("perfect octave", 12);
 
     constructor(name: string, steps: number) {
         this.name = name;
         this.steps = steps;
     }
 }
+
+const unison = new Interval("unison", 0)
+const semitone = new Interval("minor second", 1)
+const tone = new Interval("major second", 2)
+const minorThird = new Interval("minor third", 3)
+const majorThird = new Interval("major third", 4)
+const perfectForth = new Interval("perfect fourth", 5)
+const diminishedFith = new Interval("diminished fifth", 6)
+const perfectFifth = new Interval("perfect fifth", 7)
+const minorSixth = new Interval("minor sixth", 8)
+const majorSixth = new Interval("major sixth", 9)
+const minorSeventh = new Interval("minor seventh", 10)
+const majorSeventh = new Interval("major seventh", 11)
+const octave = new Interval("perfect octave", 12)
+
+
 
 class Chord {
     name: string;
@@ -80,32 +72,32 @@ class Scale {
     name: string;
     intervals: Interval[];
 
-    static readonly Major = new Scale("major", [Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond]);
-    static readonly NaturalMinor = new Scale("natural minor", [Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond]);
-    static readonly Ionian = Scale.Major;
-    static readonly Dorian = new Scale("dorian", [Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond]);
-    static readonly Phrygian = new Scale("phrygian", [Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond]);
-    static readonly Lydian = new Scale("lydian", [Interval.MajorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond]);
-    static readonly Myxolydian = new Scale("mixolydian", [Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond]);
-    static readonly Aeolian = Scale.NaturalMinor;
-    static readonly Locrian = new Scale("locrian", [Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MajorSecond]);
-    static readonly PhrygianDominant = new Scale("phrygian dominant", [Interval.MinorSecond, Interval.MinorThird, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond]);
-    static readonly Symmetric = new Scale("symmetric", [Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond]);
-
     constructor(name: string, intervals: Interval[]) {
         this.name = name;
         this.intervals = intervals;
     }
 }
 
+const major = new Scale("major", [tone, tone, semitone, tone, tone, tone, semitone])
+const naturalMinor = new Scale("natural minor", [tone, semitone, tone, tone, semitone, tone, tone])
+const ionian = new Scale("ionian", major.intervals)
+const dorian = new Scale("dorian", [tone, semitone, tone, tone, tone, semitone, tone])
+const phrygian = new Scale("phrygian", [semitone, tone, tone, tone, semitone, tone, tone])
+const lydian = new Scale("lydian", [tone, tone, tone, semitone, tone, tone, semitone])
+const myxolydian = new Scale("mixolydian", [tone, tone, semitone, tone, tone, semitone, tone])
+const aeolian = new Scale("aeolian", naturalMinor.intervals)
+const locrian = new Scale("locrian", [semitone, tone, tone, semitone, tone, tone, tone])
+const phrygianDominant = new Scale("phrygian dominant", [semitone, minorThird, semitone, tone, semitone, tone, tone])
+const symmetric = new Scale("symmetric", [semitone, tone, semitone, tone, semitone, tone, semitone, tone])
+
 function nextNote(note: Note, interval: Interval): Note {
     var octaveIndex = note.octaveIndex
     var newIndex = note.index + interval.steps
-    if (newIndex >= Note.Notes.length) {
-        newIndex = newIndex % Note.Notes.length;
+    if (newIndex >= Notes.length) {
+        newIndex = newIndex % 11;
         octaveIndex += 1;
     }
-    var newNote = Note.Notes[newIndex]
+    var newNote = Notes[newIndex]
     newNote.octaveIndex = octaveIndex
     return newNote
 }
