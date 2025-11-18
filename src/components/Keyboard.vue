@@ -27,11 +27,40 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { Note } from '../models/theory';
+import type { PropType } from 'vue'
+
 export default {
   name: 'Keyboard',
   props: {
-    msg: String
+    scaleNotes: {
+      type: Array as PropType<Note[]>,
+      default: () => [],
+    },
+  },
+  watch: {
+    scaleNotes: {
+      immediate: true,
+      handler(newNotes: Note[]) {
+        if (!newNotes) {
+          return;
+        }
+        // Reset all keys to default styles
+        const allKeys = document.querySelectorAll('.whitekey, .blackkey');
+        allKeys.forEach(key => {
+          (key as HTMLElement).style.backgroundColor = key.classList.contains('whitekey') ? 'white' : 'black';
+        });
+
+        // Highlight the keys that are in the scaleNotes prop
+        newNotes.forEach(note => {
+          const keyElement = document.getElementById(`${note.name}${note.octaveIndex}`);
+          if (keyElement) {
+            (keyElement as HTMLElement).style.backgroundColor = 'yellow'; // Highlight color
+          }
+        });
+      }
+    }
   }
 }
 </script>
@@ -65,6 +94,9 @@ a {
     width:30px;
     height:120px;
     background:black;
+    border: black;
+    border-width: 5px;
+    border-style: solid;
     z-index: 2;
 }
 </style>

@@ -47,7 +47,7 @@ export class Note {
     }
 }
 
-class Interval {
+export class Interval {
     name: string;
     steps: number;
 
@@ -76,7 +76,7 @@ class Chord {
     intervals: Interval[];
 }
 
-class Scale {
+export class Scale {
     name: string;
     intervals: Interval[];
 
@@ -91,6 +91,18 @@ class Scale {
     static readonly Locrian = new Scale("locrian", [Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MajorSecond]);
     static readonly PhrygianDominant = new Scale("phrygian dominant", [Interval.MinorSecond, Interval.MinorThird, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond]);
     static readonly Symmetric = new Scale("symmetric", [Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond]);
+    static readonly Scales = [
+        Scale.Major,
+        Scale.NaturalMinor,
+        Scale.Dorian,
+        Scale.Phrygian,
+        Scale.Lydian,
+        Scale.Myxolydian,
+        Scale.Aeolian,
+        Scale.Locrian,
+        Scale.PhrygianDominant,
+        Scale.Symmetric
+    ];
 
     constructor(name: string, intervals: Interval[]) {
         this.name = name;
@@ -98,15 +110,15 @@ class Scale {
     }
 }
 
-function nextNote(note: Note, interval: Interval): Note {
+function selectNextNote(note: Note, interval: Interval): Note {
     var octaveIndex = note.octaveIndex
     var newIndex = note.index + interval.steps
     if (newIndex >= Note.Notes.length) {
         newIndex = newIndex % Note.Notes.length;
         octaveIndex += 1;
     }
-    var newNote = Note.Notes[newIndex]
-    newNote.octaveIndex = octaveIndex
+    const proto = Note.Notes[newIndex];
+    const newNote = new Note(proto.name, proto.index, octaveIndex);
     return newNote
 }
 
@@ -115,7 +127,21 @@ function buildChord(root: Note, chord: Chord): Note[] {
     notes.push(root);
     var thisNote = root;
     for (let interval of chord.intervals) {
-        var nextNote = nextNote(thisNote, interval)
+        var nextNote = selectNextNote(thisNote, interval)
+        notes.push(nextNote)
+        thisNote = nextNote
+    }
+
+    return notes;
+}
+
+export function buildScale(root: Note, scale: Scale): Note[] {
+    const notes: Note[] = [];
+    notes.push(root);
+    var thisNote = root;
+    var octaveIndex = root.octaveIndex
+    for (let interval of scale.intervals) {
+        var nextNote = selectNextNote(thisNote, interval)
         notes.push(nextNote)
         thisNote = nextNote
     }

@@ -1,9 +1,12 @@
 <template>
   <div id="keypicker">
-    <p>Keypicker Goes Here</p>
-    <ul>
-      <li v-for="note in notes" :key="note.name">{{ note.name }}</li>
-    </ul>
+    <p>Select a Key</p>
+    <div>
+      <div class="keytonics"
+      :class="{ 'currentTonic': currentTonic && note.index === currentTonic.index }" 
+      @click="selectKey(note)"
+      v-for="note in notes" :key="note.index">{{ note.name }}</div>
+    </div>
   </div>
 </template>
 
@@ -16,22 +19,28 @@ export default {
     msg: String
   },
   data() {
-    return { notes: Note.Notes };
+    return { 
+      notes: Note.Notes,
+      currentTonic: null
+    };
+  },
+  methods: {
+    selectKey(note) {
+      console.log('In KeyPicker, selectKey called with note:', note.name);
+      this.$emit('selectKey', note);
+      this.currentTonic = note;
+      // eslint-disable-next-line no-console
+      console.log('Selected key:', JSON.parse(JSON.stringify(this.currentTonic)));
+    }
   },
   mounted() {
-    // Debug: check what was imported and what's available on the component
-    // Open the browser console when running the app to inspect these logs.
-    // This will reveal whether `Notes` is undefined/empty or if the template
-    // binding was incorrect.
+    this.selectKey(Note.C);
     // eslint-disable-next-line no-console
-    console.log('imported Notes:', Note.Notes);
-    // eslint-disable-next-line no-console
-    console.log('this.notes (component data):', this.notes, Array.isArray(this.notes) ? this.notes.length : typeof this.notes);
+    console.log('Initial current Tonic at mount:', this.currentTonic);
   }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 h3 {
   margin: 40px 0 0;
@@ -51,5 +60,17 @@ a {
   position: absolute;
   left: 800px;
   top: 40px;
+}
+.keytonics{
+  width:40px;
+  height:40px;
+  border: 1px solid black;
+  margin: 2px;
+  line-height: 40px;
+  float: left;
+  cursor: pointer;
+}
+.currentTonic{
+  background-color: yellow;
 }
 </style>
