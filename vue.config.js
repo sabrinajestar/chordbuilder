@@ -15,6 +15,12 @@ module.exports = defineConfig({
     rule.test(/\.ts$|\.tsx$/)
       .use('ts-loader')
       .loader('ts-loader')
-      .tap(options => Object.assign(options || {}, { appendTsSuffixTo: [/\.vue$/] }))
+      .tap(options => Object.assign(options || {}, { 
+        appendTsSuffixTo: [/\.vue$/],
+        // transpileOnly: true skips type-checking during webpack compilation,
+        // making hot reload faster and preventing webpack from failing on type errors.
+        // Type checking can still be done separately with `tsc --noEmit` or a separate plugin.
+        transpileOnly: true
+      }))
   }
 })

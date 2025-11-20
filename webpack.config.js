@@ -6,19 +6,28 @@ module.exports = {
         filename: "bundle.js"
     },
     resolve: {
-    // Add `.ts` and `.tsx` as a resolvable extension.
-    extensions: [".ts", ".tsx", ".js"],
-    // Add support for TypeScripts fully qualified ESM imports.
-    extensionAlias: {
-        ".js": [".js", ".ts"],
-        ".cjs": [".cjs", ".cts"],
-        ".mjs": [".mjs", ".mts"]
-    }
+        extensions: [".ts", ".tsx", ".js"],
+        extensionAlias: {
+            ".js": [".js", ".ts"],
+            ".cjs": [".cjs", ".cts"],
+            ".mjs": [".mjs", ".mts"]
+        }
     },
     module: {
         rules: [
-            // all files with a `.ts`, `.cts`, `.mts` or `.tsx` extension will be handled by `ts-loader`
-            { test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }
+            {
+                // Match only .ts and .tsx files (not .d.ts declaration files)
+                test: /\.tsx?$/,
+                loader: "ts-loader",
+                // Exclude node_modules and any TypeScript declaration files
+                exclude: [/node_modules/, /\.d\.ts$/],
+                // It's often useful to run ts-loader in transpileOnly mode and use
+                // a separate type-checker plugin (fork-ts-checker-webpack-plugin).
+                // If you prefer strict loader-based type checking, remove this option.
+                options: {
+                    transpileOnly: false
+                }
+            }
         ]
     }
 };

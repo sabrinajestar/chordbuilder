@@ -1,5 +1,9 @@
 {
     "compilerOptions": {
-        "sourceMap": true
+        "sourceMap": true,
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "moduleResolution": "node"
     }
 }
