@@ -13,18 +13,18 @@ export class Note {
     index: number;
     octaveIndex: number;
 
-    static readonly C = new Note("c", 0);
-    static readonly CSHARP = new Note("c#", 1);
-    static readonly D = new Note("d", 2);
-    static readonly DSHARP = new Note("d#", 3);
-    static readonly E = new Note("e", 4);
-    static readonly F = new Note("f", 5);
-    static readonly FSHARP = new Note("f#", 6);
-    static readonly G = new Note("g", 7);
-    static readonly GSHARP = new Note("g#", 8);
-    static readonly A = new Note("a", 9);
-    static readonly ASHARP = new Note("a#", 10);
-    static readonly B = new Note("b", 11);
+    static readonly C = new Note("C", 0);
+    static readonly CSHARP = new Note("C#", 1);
+    static readonly D = new Note("D", 2);
+    static readonly DSHARP = new Note("D#", 3);
+    static readonly E = new Note("E", 4);
+    static readonly F = new Note("F", 5);
+    static readonly FSHARP = new Note("F#", 6);
+    static readonly G = new Note("G", 7);
+    static readonly GSHARP = new Note("G#", 8);
+    static readonly A = new Note("A", 9);
+    static readonly ASHARP = new Note("A#", 10);
+    static readonly B = new Note("B", 11);
     static readonly Notes = [
         Note.C,
         Note.CSHARP,
