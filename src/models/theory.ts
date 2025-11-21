@@ -26,18 +26,9 @@ export class Note {
     static readonly ASHARP = new Note("A#", 10);
     static readonly B = new Note("B", 11);
     static readonly Notes = [
-        Note.C,
-        Note.CSHARP,
-        Note.D,
-        Note.DSHARP,
-        Note.E,
-        Note.F,
-        Note.FSHARP,
-        Note.G,
-        Note.GSHARP,
-        Note.A,
-        Note.ASHARP,
-        Note.B
+        Note.C, Note.CSHARP, Note.D, Note.DSHARP,
+        Note.E, Note.F, Note.FSHARP, Note.G,
+        Note.GSHARP, Note.A, Note.ASHARP, Note.B
     ];
 
     constructor(name: string, index: number, octaveIndex: number = 3) {
@@ -65,18 +56,9 @@ export class Interval {
     static readonly MajorSeventh = new Interval("major seventh", 11);
     static readonly PerfectOctave = new Interval("perfect octave", 12);
     static readonly Intervals = [
-        Interval.PerfectUnison,
-        Interval.MinorSecond,
-        Interval.MajorSecond,
-        Interval.MinorThird,
-        Interval.MajorThird,
-        Interval.PerfectFourth,
-        Interval.DiminishedFifth,
-        Interval.PerfectFifth,
-        Interval.MinorSixth,
-        Interval.MajorSixth,
-        Interval.MinorSeventh,
-        Interval.MajorSeventh,
+        Interval.PerfectUnison, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorThird,
+        Interval.MajorThird, Interval.PerfectFourth, Interval.DiminishedFifth, Interval.PerfectFifth,
+        Interval.MinorSixth, Interval.MajorSixth, Interval.MinorSeventh, Interval.MajorSeventh,
         Interval.PerfectOctave
     ];
 
@@ -132,16 +114,8 @@ export class Scale {
     static readonly PhrygianDominant = new Scale("phrygian dominant", [Interval.MinorSecond, Interval.MinorThird, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond]);
     static readonly Symmetric = new Scale("symmetric", [Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond]);
     static readonly Scales = [
-        Scale.Major,
-        Scale.NaturalMinor,
-        Scale.Ionian,
-        Scale.Dorian,
-        Scale.Phrygian,
-        Scale.Lydian,
-        Scale.Myxolydian,
-        Scale.Aeolian,
-        Scale.Locrian,
-        Scale.PhrygianDominant,
+        Scale.Major, Scale.NaturalMinor, Scale.Ionian, Scale.Dorian, Scale.Phrygian,
+        Scale.Lydian, Scale.Myxolydian, Scale.Aeolian, Scale.Locrian, Scale.PhrygianDominant,
         Scale.Symmetric
     ];
 
@@ -231,7 +205,7 @@ export function buildScaleTriads(root: Note, scale: Scale): Chord[] {
 
 export function classifyChord(intervals: Interval[]): Chord {
     if (intervals.length === 1) {
-        return new Chord("dyad", intervals);
+        return new Chord(intervals[0].name, intervals);
     }
 
     for (const chord of Chord.Chords) {

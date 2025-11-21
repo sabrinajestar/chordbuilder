@@ -57,11 +57,10 @@ a {
   color: #42b983;
 }
 #keypicker{
-  position: absolute;
-  left: 800px;
-  top: 40px;
+  text-align: left;
 }
 .keytonics{
+  text-align: center;
   width:40px;
   height:40px;
   border: 1px solid black;

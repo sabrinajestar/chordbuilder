@@ -1,29 +1,29 @@
 <template>
   <div class="keyboard">
     <div id="C3" class="whitekey" style="position: absolute; left:40px; top:50px"></div>
-    <div id="C#3" class="blackkey" style="position: absolute; left:73px; top:50px"></div>
-    <div id="D3" class="whitekey" style="position: absolute; left:85px; top:50px"></div>
-    <div id="D#3" class="blackkey" style="position: absolute; left:118px; top:50px"></div>
-    <div id="E3" class="whitekey" style="position: absolute; left:130px; top:50px"></div>
-    <div id="F3" class="whitekey" style="position: absolute; left:175px; top:50px"></div>
-    <div id="F#3" class="blackkey" style="position: absolute; left:208px; top:50px"></div>
-    <div id="G3" class="whitekey" style="position: absolute; left:220px; top:50px"></div>
-    <div id="G#3" class="blackkey" style="position: absolute; left:253px; top:50px"></div>
-    <div id="A3" class="whitekey" style="position: absolute; left:265px; top:50px"></div>
-    <div id="A#3" class="blackkey" style="position: absolute; left:298px; top:50px"></div>
-    <div id="B3" class="whitekey" style="position: absolute; left:310px; top:50px"></div>
-    <div id="C4" class="whitekey" style="position: absolute; left:355px; top:50px"></div>
-    <div id="C#4" class="blackkey" style="position: absolute; left:388px; top:50px"></div>
-    <div id="D4" class="whitekey" style="position: absolute; left:400px; top:50px"></div>
-    <div id="D#4" class="blackkey" style="position: absolute; left:433px; top:50px"></div>
-    <div id="E4" class="whitekey" style="position: absolute; left:445px; top:50px"></div>
-    <div id="F4" class="whitekey" style="position: absolute; left:490px; top:50px"></div>
-    <div id="F#4" class="blackkey" style="position: absolute; left:523px; top:50px"></div>
-    <div id="G4" class="whitekey" style="position: absolute; left:535px; top:50px"></div>
-    <div id="G#4" class="blackkey" style="position: absolute; left:568px; top:50px"></div>
-    <div id="A4" class="whitekey" style="position: absolute; left:580px; top:50px"></div>
-    <div id="A#4" class="blackkey" style="position: absolute; left:613px; top:50px"></div>
-    <div id="B4" class="whitekey" style="position: absolute; left:625px; top:50px"></div>
+    <div id="C#3" class="blackkey" style="position: absolute; left:65px; top:50px"></div>
+    <div id="D3" class="whitekey" style="position: absolute; left:75px; top:50px"></div>
+    <div id="D#3" class="blackkey" style="position: absolute; left:100px; top:50px"></div>
+    <div id="E3" class="whitekey" style="position: absolute; left:110px; top:50px"></div>
+    <div id="F3" class="whitekey" style="position: absolute; left:145px; top:50px"></div>
+    <div id="F#3" class="blackkey" style="position: absolute; left:170px; top:50px"></div>
+    <div id="G3" class="whitekey" style="position: absolute; left:180px; top:50px"></div>
+    <div id="G#3" class="blackkey" style="position: absolute; left:205px; top:50px"></div>
+    <div id="A3" class="whitekey" style="position: absolute; left:215px; top:50px"></div>
+    <div id="A#3" class="blackkey" style="position: absolute; left:240px; top:50px"></div>
+    <div id="B3" class="whitekey" style="position: absolute; left:250px; top:50px"></div>
+    <div id="C4" class="whitekey" style="position: absolute; left:285px; top:50px"></div>
+    <div id="C#4" class="blackkey" style="position: absolute; left:310px; top:50px"></div>
+    <div id="D4" class="whitekey" style="position: absolute; left:320px; top:50px"></div>
+    <div id="D#4" class="blackkey" style="position: absolute; left:345px; top:50px"></div>
+    <div id="E4" class="whitekey" style="position: absolute; left:355px; top:50px"></div>
+    <div id="F4" class="whitekey" style="position: absolute; left:390px; top:50px"></div>
+    <div id="F#4" class="blackkey" style="position: absolute; left:415px; top:50px"></div>
+    <div id="G4" class="whitekey" style="position: absolute; left:425px; top:50px"></div>
+    <div id="G#4" class="blackkey" style="position: absolute; left:450px; top:50px"></div>
+    <div id="A4" class="whitekey" style="position: absolute; left:460px; top:50px"></div>
+    <div id="A#4" class="blackkey" style="position: absolute; left:485px; top:50px"></div>
+    <div id="B4" class="whitekey" style="position: absolute; left:495px; top:50px"></div>
   </div>
 </template>
 
@@ -85,7 +85,7 @@ a {
     z-index: 1;
 }
 .blackkey{
-    width:30px;
+    width:25px;
     height:120px;
     background:black;
     border: black;

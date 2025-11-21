@@ -1,10 +1,26 @@
 <template>
   <div id="app">
-    <div>current Key: {{ currentKey ? currentKey.name : 'No key selected' }}</div>
-    <div>current Scale: {{ currentScale ? currentScale.name : 'No scale selected' }}</div>
-    <Keyboard :scaleNotes="keyNotes"></Keyboard>
-    <KeyPicker @select-key="handleKeySelection"></KeyPicker>
-    <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
+    <v-container>
+      <v-row>
+        <v-col>
+          <div>current Key: {{ currentKey ? currentKey.name : 'No key selected' }}</div>
+          <div>current Scale: {{ currentScale ? currentScale.name : 'No scale selected' }}</div>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="6">
+          <Keyboard :scaleNotes="keyNotes"></Keyboard>
+        </v-col>
+        <v-col cols="6">
+          <v-row>
+            <KeyPicker @select-key="handleKeySelection"></KeyPicker>
+          </v-row>
+          <v-row>
+            <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-container>
   </div>
 </template>
 

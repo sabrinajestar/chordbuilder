@@ -58,19 +58,17 @@ a {
   color: #42b983;
 }
 #scalepicker{
-  position: absolute;
-  left: 800px;
-  top: 200px;
+  text-align: left;
 }
 .scaleSelected{
-  /* display: inline-block; */
-  /* width:40px; */
+  text-align: center;
   height:40px;
   border: 1px solid black;
   margin: 2px;
   line-height: 40px;
   float: left;
   cursor: pointer;
+  padding: 0 10px 0 10px;
 }
 .currentScale{
   background-color: yellow;
