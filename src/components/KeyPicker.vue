@@ -27,7 +27,7 @@ export default {
   methods: {
     selectKey(note) {
       console.log('In KeyPicker, selectKey called with note:', note.name);
-      this.$emit('selectKey', note);
+      this.$emit('select-key', note);
       this.currentTonic = note;
       // eslint-disable-next-line no-console
       console.log('Selected key:', JSON.parse(JSON.stringify(this.currentTonic)));

@@ -12,25 +12,7 @@
 import Keyboard from './components/Keyboard.vue'
 import KeyPicker from './components/KeyPicker.vue';
 import ScalePicker from './components/ScalePicker.vue';
-import { buildScale } from './models/theory.ts';
-
-function handleKeySelection(note) {
-  console.log('Selected key in App:', JSON.parse(JSON.stringify(note)));
-  this.currentKey = note;
-  if (this.currentScale) {
-    this.keyNotes = buildScale(this.currentKey, this.currentScale);
-    console.log('Updated keyNotes:', JSON.parse(JSON.stringify(this.keyNotes)));
-  }
-}
-
-function handleScaleSelection(scale) {
-  console.log('Selected scale in App:', JSON.parse(JSON.stringify(scale)));
-  this.currentScale = scale;
-    if (this.currentKey) {
-    this.keyNotes = buildScale(this.currentKey, this.currentScale);
-    console.log('Updated keyNotes:', JSON.parse(JSON.stringify(this.keyNotes)));
-  }
-}
+import { buildScale, buildScaleTriads } from './models/theory.ts';
 
 export default {
   name: 'App',
@@ -43,12 +25,33 @@ export default {
     return {
       currentKey: null,
       currentScale: null,
-      keyNotes: null
+      keyNotes: null,
+      keyTriads: null
     };
   },
   methods: {
-    handleKeySelection,
-    handleScaleSelection
+    handleKeySelection(note) {
+      console.log('Selected key in App:', JSON.parse(JSON.stringify(note)));
+      console.log('this in handleKeySelection:', this);
+      console.log('buildScaleAndTriads on this is:', typeof this.buildScaleAndTriads);
+      this.currentKey = note;
+      this.buildScaleAndTriads();
+    },
+    handleScaleSelection(scale) {
+      console.log('Selected scale in App:', JSON.parse(JSON.stringify(scale)));
+      console.log('this in handleScaleSelection:', this);
+      console.log('buildScaleAndTriads on this is:', typeof this.buildScaleAndTriads);
+      this.currentScale = scale;
+      this.buildScaleAndTriads();
+    },
+    buildScaleAndTriads() {
+      console.log('Building scale and triads with key:', this.currentKey, 'and scale:', this.currentScale);
+      if (this.currentKey && this.currentScale) {
+        this.keyNotes = buildScale(this.currentKey, this.currentScale);
+        this.keyTriads = buildScaleTriads(this.currentKey, this.currentScale);
+        console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyTriads)));
+      }
+    }
   }
 }
 </script>

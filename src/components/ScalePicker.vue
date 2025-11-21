@@ -26,7 +26,7 @@ export default {
   methods: {
     selectScale(scale) {
       // Emit the selected scale to the parent component
-      this.$emit('selectScale', scale);
+      this.$emit('select-scale', scale);
       this.currentScale = scale;
       // eslint-disable-next-line no-console
       console.log('Selected scale:', JSON.parse(JSON.stringify(scale)));

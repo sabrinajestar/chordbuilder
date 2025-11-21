@@ -82,18 +82,19 @@ export class Scale {
 
     static readonly Major = new Scale("major", [Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond]);
     static readonly NaturalMinor = new Scale("natural minor", [Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond]);
-    static readonly Ionian = Scale.Major;
+    static readonly Ionian = new Scale("ionian", Scale.Major.intervals);
     static readonly Dorian = new Scale("dorian", [Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond]);
     static readonly Phrygian = new Scale("phrygian", [Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond]);
     static readonly Lydian = new Scale("lydian", [Interval.MajorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond]);
     static readonly Myxolydian = new Scale("mixolydian", [Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond]);
-    static readonly Aeolian = Scale.NaturalMinor;
+    static readonly Aeolian = new Scale("aeolian", Scale.NaturalMinor.intervals);
     static readonly Locrian = new Scale("locrian", [Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond, Interval.MajorSecond]);
     static readonly PhrygianDominant = new Scale("phrygian dominant", [Interval.MinorSecond, Interval.MinorThird, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MajorSecond]);
     static readonly Symmetric = new Scale("symmetric", [Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond, Interval.MinorSecond, Interval.MajorSecond]);
     static readonly Scales = [
         Scale.Major,
         Scale.NaturalMinor,
+        Scale.Ionian,
         Scale.Dorian,
         Scale.Phrygian,
         Scale.Lydian,
@@ -139,7 +140,6 @@ export function buildScale(root: Note, scale: Scale): Note[] {
     const notes: Note[] = [];
     notes.push(root);
     var thisNote = root;
-    var octaveIndex = root.octaveIndex
     for (let interval of scale.intervals) {
         var nextNote = selectNextNote(thisNote, interval)
         notes.push(nextNote)
@@ -148,3 +148,23 @@ export function buildScale(root: Note, scale: Scale): Note[] {
 
     return notes;
 }
+
+export function buildScaleTriads(root: Note, scale: Scale): Note[][] {
+    const scaleNotes = buildScale(root, scale);
+    const triads: Note[][] = [];
+
+    for (let i = 0; i < scaleNotes.length; i++) {
+        const triad: Note[] = [];
+        triad.push(scaleNotes[i]);
+        var firstMidNote = selectNextNote(scaleNotes[i], scale.intervals[ (i) % scale.intervals.length ]);
+        var secondNote = selectNextNote(firstMidNote, scale.intervals[ (i + 1) % scale.intervals.length ]);
+        triad.push(secondNote);
+        var secondMidNote = selectNextNote(secondNote, scale.intervals[ (i + 1) % scale.intervals.length ]);
+        var thirdNote = selectNextNote(secondMidNote, scale.intervals[ (i + 2) % scale.intervals.length ]);
+        triad.push(thirdNote);
+        triads.push(triad);
+    }
+
+    return triads;
+}
+
