@@ -93,8 +93,10 @@ class Chord {
         this.intervals = intervals;
     }
 
-    name(): string {
-        return this.notes[0] ? this.notes[0].name + " " + this.classification : this.classification;
+    get name(): string {
+        const name = (this.notes[0] !== null) ? this.notes[0].name + " " + this.classification : this.classification;
+        console.log("Chord name:", name);
+        return name;
     }
 }
 
@@ -176,7 +178,7 @@ export function buildScaleTriads(root: Note, scale: Scale): Chord[] {
     const scaleNotes = buildScale(root, scale);
     const chords: Chord[] = [];
 
-    for (let i = 0; i < scaleNotes.length; i++) {
+    for (let i = 0; i < scaleNotes.length - 1; i++) {
         var nextScaleIntervals = [
             scale.intervals[i % scale.intervals.length], 
             scale.intervals[(i + 1) % scale.intervals.length], 

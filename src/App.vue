@@ -5,13 +5,14 @@
         <v-col>
           <div>current Key: {{ currentKey ? currentKey.name : 'No key selected' }}</div>
           <div>current Scale: {{ currentScale ? currentScale.name : 'No scale selected' }}</div>
+          <div>scale Triads: {{ keyChords ? keyChords.map(chord => chord.name).join(', ') : 'No triads available' }}</div>
         </v-col>
       </v-row>
       <v-row>
-        <v-col cols="6">
+        <v-col cols="7">
           <Keyboard :scaleNotes="keyNotes"></Keyboard>
         </v-col>
-        <v-col cols="6">
+        <v-col cols="5">
           <v-row>
             <KeyPicker @select-key="handleKeySelection"></KeyPicker>
           </v-row>
@@ -42,7 +43,7 @@ export default {
       currentKey: null,
       currentScale: null,
       keyNotes: null,
-      keyTriads: null
+      keyChords: null
     };
   },
   methods: {
@@ -64,8 +65,8 @@ export default {
       console.log('Building scale and triads with key:', this.currentKey, 'and scale:', this.currentScale);
       if (this.currentKey && this.currentScale) {
         this.keyNotes = buildScale(this.currentKey, this.currentScale);
-        this.keyTriads = buildScaleTriads(this.currentKey, this.currentScale);
-        console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyTriads)));
+        this.keyChords = buildScaleTriads(this.currentKey, this.currentScale);
+        console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyChords)));
       }
     }
   }
