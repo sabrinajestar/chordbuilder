@@ -64,6 +64,21 @@ export class Interval {
     static readonly MinorSeventh = new Interval("minor seventh", 10);
     static readonly MajorSeventh = new Interval("major seventh", 11);
     static readonly PerfectOctave = new Interval("perfect octave", 12);
+    static readonly Intervals = [
+        Interval.PerfectUnison,
+        Interval.MinorSecond,
+        Interval.MajorSecond,
+        Interval.MinorThird,
+        Interval.MajorThird,
+        Interval.PerfectFourth,
+        Interval.DiminishedFifth,
+        Interval.PerfectFifth,
+        Interval.MinorSixth,
+        Interval.MajorSixth,
+        Interval.MinorSeventh,
+        Interval.MajorSeventh,
+        Interval.PerfectOctave
+    ];
 
     constructor(name: string, steps: number) {
         this.name = name;
@@ -72,8 +87,33 @@ export class Interval {
 }
 
 class Chord {
-    name: string;
+    classification: string;
     intervals: Interval[];
+    notes: Note[];
+
+    static readonly MajorTriad = new Chord("major", [Interval.MajorThird, Interval.MinorThird]);
+    static readonly MinorTriad = new Chord("minor", [Interval.MinorThird, Interval.MajorThird]);
+    static readonly DiminishedTriad = new Chord("diminished", [Interval.MinorThird, Interval.MinorThird]);
+    static readonly AugmentedTriad = new Chord("augmented", [Interval.MajorThird, Interval.MajorThird]);
+    static readonly SuspendedFourth = new Chord("suspended fourth", [Interval.PerfectFourth, Interval.MajorSecond]);
+    static readonly SuspendedSecond = new Chord("suspended second", [Interval.MajorSecond, Interval.PerfectFourth]);
+    static readonly Chords = [
+        Chord.MajorTriad,
+        Chord.MinorTriad,
+        Chord.DiminishedTriad,
+        Chord.AugmentedTriad,
+        Chord.SuspendedFourth,
+        Chord.SuspendedSecond
+    ];
+
+    constructor(classification: string, intervals: Interval[]) {
+        this.classification = classification;
+        this.intervals = intervals;
+    }
+
+    name(): string {
+        return this.notes[0] ? this.notes[0].name + " " + this.classification : this.classification;
+    }
 }
 
 export class Scale {
@@ -149,22 +189,57 @@ export function buildScale(root: Note, scale: Scale): Note[] {
     return notes;
 }
 
-export function buildScaleTriads(root: Note, scale: Scale): Note[][] {
+function selectIntervalBySteps(steps: number): Interval | null {
+    for (let interval of Interval.Intervals) {
+        if (interval.steps === steps) {
+            return interval;
+        }
+    }
+    return null;
+}
+
+export function buildScaleTriads(root: Note, scale: Scale): Chord[] {
     const scaleNotes = buildScale(root, scale);
-    const triads: Note[][] = [];
+    const chords: Chord[] = [];
 
     for (let i = 0; i < scaleNotes.length; i++) {
-        const triad: Note[] = [];
-        triad.push(scaleNotes[i]);
-        var firstMidNote = selectNextNote(scaleNotes[i], scale.intervals[ (i) % scale.intervals.length ]);
-        var secondNote = selectNextNote(firstMidNote, scale.intervals[ (i + 1) % scale.intervals.length ]);
-        triad.push(secondNote);
-        var secondMidNote = selectNextNote(secondNote, scale.intervals[ (i + 1) % scale.intervals.length ]);
-        var thirdNote = selectNextNote(secondMidNote, scale.intervals[ (i + 2) % scale.intervals.length ]);
-        triad.push(thirdNote);
-        triads.push(triad);
+        var nextScaleIntervals = [
+            scale.intervals[i % scale.intervals.length], 
+            scale.intervals[(i + 1) % scale.intervals.length], 
+            scale.intervals[(i + 2) % scale.intervals.length], 
+            scale.intervals[(i + 3) % scale.intervals.length]
+        ];
+        console.log("nextScaleIntervals:", nextScaleIntervals.map(interval => interval.name));
+        var firstSteps = (nextScaleIntervals[0].steps + nextScaleIntervals[1].steps);
+        var secondSteps = (nextScaleIntervals[2].steps + nextScaleIntervals[3].steps);
+        console.log("firstSteps:", firstSteps, "secondSteps:", secondSteps);
+
+        var firstInterval = selectIntervalBySteps(firstSteps % scale.intervals.length);
+        var secondInterval = selectIntervalBySteps(secondSteps % scale.intervals.length);
+        console.log("firstInterval:", firstInterval?.name, "secondInterval:", secondInterval?.name);
+
+        var secondNote = selectNextNote(scaleNotes[i], firstInterval!);
+        var thirdNote = selectNextNote(secondNote, secondInterval!);
+        console.log("triad notes:", scaleNotes[i].name, secondNote.name, thirdNote.name);
+        var chord = classifyChord([firstInterval!, secondInterval!]);
+        chord.notes = [scaleNotes[i], secondNote, thirdNote];
+        chords.push(chord);
     }
 
-    return triads;
+    return chords;
+}
+
+export function classifyChord(intervals: Interval[]): Chord {
+    if (intervals.length === 1) {
+        return new Chord("dyad", intervals);
+    }
+
+    for (const chord of Chord.Chords) {
+        if (chord.intervals[0] === intervals[0] && chord.intervals[1] === intervals[1]) {
+            return new Chord(chord.classification, chord.intervals);
+        }
+    }
+
+    return new Chord("unclassified chord", intervals);
 }
 
