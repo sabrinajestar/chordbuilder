@@ -1,31 +1,31 @@
 <template>
   <div class="keyboard">
     <svg width="570" height="200" xmlns="http://www.w3.org/2000/svg">
-      <rect id="C3" x="0" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="D3" x="40" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="E3" x="80" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="F3" x="120" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="G3" x="160" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="A3" x="200" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="B3" x="240" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="C4" x="280" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="D4" x="320" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="E4" x="360" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="F4" x="400" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="G4" x="440" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="A4" x="480" y="0" width="40" height="200" class="whitekey"></rect>
-      <rect id="B4" x="520" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="C3rect" x="0" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="D3rect" x="40" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="E3rect" x="80" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="F3rect" x="120" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="G3rect" x="160" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="A3rect" x="200" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="B3rect" x="240" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="C4rect" x="280" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="D4rect" x="320" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="E4rect" x="360" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="F4rect" x="400" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="G4rect" x="440" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="A4rect" x="480" y="0" width="40" height="200" class="whitekey"></rect>
+      <rect id="B4rect" x="520" y="0" width="40" height="200" class="whitekey"></rect>
 
-      <rect id="C#3" x="28" y="0" width="25" height="120" class="blackkey"></rect>
-      <rect id="D#3" x="68" y="0" width="25" height="120" class="blackkey"></rect>
-      <rect id="F#3" x="148" y="0" width="25" height="120" class="blackkey"></rect>
-      <rect id="G#3" x="188" y="0" width="25" height="120" class="blackkey"></rect>
-      <rect id="A#3" x="228" y="0" width="25" height="120" class="blackkey"></rect>
-      <rect id="C#4" x="308" y="0" width="25" height="120" class="blackkey"></rect>
-      <rect id="D#4" x="348" y="0" width="25" height="120" class="blackkey"></rect>
-      <rect id="F#4" x="428" y="0" width="25" height="120" class="blackkey"></rect>
-      <rect id="G#4" x="468" y="0" width="25" height="120" class="blackkey"></rect>
-      <rect id="A#4" x="508" y="0" width="25" height="120" class="blackkey"></rect>
+      <rect id="C#3rect" x="28" y="0" width="25" height="120" class="blackkey"></rect>
+      <rect id="D#3rect" x="68" y="0" width="25" height="120" class="blackkey"></rect>
+      <rect id="F#3rect" x="148" y="0" width="25" height="120" class="blackkey"></rect>
+      <rect id="G#3rect" x="188" y="0" width="25" height="120" class="blackkey"></rect>
+      <rect id="A#3rect" x="228" y="0" width="25" height="120" class="blackkey"></rect>
+      <rect id="C#4rect" x="308" y="0" width="25" height="120" class="blackkey"></rect>
+      <rect id="D#4rect" x="348" y="0" width="25" height="120" class="blackkey"></rect>
+      <rect id="F#4rect" x="428" y="0" width="25" height="120" class="blackkey"></rect>
+      <rect id="G#4rect" x="468" y="0" width="25" height="120" class="blackkey"></rect>
+      <rect id="A#4rect" x="508" y="0" width="25" height="120" class="blackkey"></rect>
 
       <circle id="C3circ" cx="20" cy="175" r="10" class="blackcircle"></circle>
       <circle id="D3circ" cx="60" cy="175" r="10" class="blackcircle"></circle>
@@ -70,11 +70,15 @@ export default {
       allKeys.forEach(key => {
         key.style.fill = key.classList.contains('whitekey') ? 'white' : 'black';
       });
+      const allChordNotes = document.querySelectorAll('.whitecircle, .blackcircle');
+      allChordNotes.forEach(key => {
+        key.style.display = 'none';
+      });
 
       if (newScaleNotes) {
         // Highlight the keys that are in the scaleNotes prop
         newScaleNotes.forEach(note => {
-          const keyElement = document.getElementById(`${note.name}${note.octaveIndex}`);
+          const keyElement = document.getElementById(`${note.name}${note.octaveIndex}`+'rect');
           if (keyElement) {
             keyElement.style.fill = 'yellow'; // Highlight color
           }
@@ -83,9 +87,13 @@ export default {
 
       if (newChordNotes) {
         newChordNotes.forEach(note => {
-          const circleElement = document.getElementById(`${note.name}${note.octaveIndex}circle`);
+          console.log("Highlighting chord note on keyboard:", note.name + note.octaveIndex);
+          const circleElement = document.getElementById(`${note.name}${note.octaveIndex}`+'circ');
+          console.log("looking for circleElement: " + `${note.name}${note.octaveIndex}`+'circ');
+          console.log("circleElement found:", circleElement);
           if (circleElement) {
-            circleElement.style.fill = 'yellow'; // Highlight color
+            circleElement.style.fill = 'red';
+            circleElement.style.display = 'block';
           }
         });
       }

@@ -36,7 +36,7 @@ export default {
   mounted() {
     this.selectKey(Note.C);
     // eslint-disable-next-line no-console
-    console.log('Initial current Tonic at mount:', this.currentTonic);
+    // console.log('Initial current Tonic at mount:', this.currentTonic);
   }
 }
 </script>

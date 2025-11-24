@@ -95,7 +95,6 @@ class Chord {
 
     get name(): string {
         const name = (this.notes[0] !== null) ? this.notes[0].name + " " + this.classification : this.classification;
-        console.log("Chord name:", name);
         return name;
     }
 }
@@ -185,18 +184,18 @@ export function buildScaleTriads(root: Note, scale: Scale): Chord[] {
             scale.intervals[(i + 2) % scale.intervals.length], 
             scale.intervals[(i + 3) % scale.intervals.length]
         ];
-        console.log("nextScaleIntervals:", nextScaleIntervals.map(interval => interval.name));
+        // console.log("nextScaleIntervals:", nextScaleIntervals.map(interval => interval.name));
         var firstSteps = (nextScaleIntervals[0].steps + nextScaleIntervals[1].steps);
         var secondSteps = (nextScaleIntervals[2].steps + nextScaleIntervals[3].steps);
-        console.log("firstSteps:", firstSteps, "secondSteps:", secondSteps);
+        // console.log("firstSteps:", firstSteps, "secondSteps:", secondSteps);
 
         var firstInterval = selectIntervalBySteps(firstSteps % scale.intervals.length);
         var secondInterval = selectIntervalBySteps(secondSteps % scale.intervals.length);
-        console.log("firstInterval:", firstInterval?.name, "secondInterval:", secondInterval?.name);
+        // console.log("firstInterval:", firstInterval?.name, "secondInterval:", secondInterval?.name);
 
         var secondNote = selectNextNote(scaleNotes[i], firstInterval!);
         var thirdNote = selectNextNote(secondNote, secondInterval!);
-        console.log("triad notes:", scaleNotes[i].name, secondNote.name, thirdNote.name);
+        // console.log("triad notes:", scaleNotes[i].name, secondNote.name, thirdNote.name);
         var chord = classifyChord([firstInterval!, secondInterval!]);
         chord.notes = [scaleNotes[i], secondNote, thirdNote];
         chords.push(chord);
