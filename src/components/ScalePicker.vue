@@ -29,7 +29,7 @@ export default {
       this.$emit('select-scale', scale);
       this.currentScale = scale;
       // eslint-disable-next-line no-console
-      console.log('Selected scale:', JSON.parse(JSON.stringify(scale)));
+      // console.log('Selected scale:', JSON.parse(JSON.stringify(scale)));
       
 
     }
@@ -37,7 +37,7 @@ export default {
   mounted() {
     this.selectScale(Scale.Major);
     // eslint-disable-next-line no-console
-    console.log('Initial current Scale at mount:', this.currentScale);
+    // console.log('Initial current Scale at mount:', this.currentScale);
   }
 }
 </script>
