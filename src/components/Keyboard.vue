@@ -57,6 +57,9 @@
 </template>
 
 <script>
+import * as Tone from "tone";
+const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+
 export default {
   name: 'Keyboard',
   props: {
@@ -94,6 +97,10 @@ export default {
           if (circleElement) {
             circleElement.style.fill = 'red';
             circleElement.style.display = 'block';
+            if(synth && typeof synth.triggerAttackRelease === 'function') {
+              console.log("Playing note:", note.name + note.octaveIndex);
+              synth.triggerAttackRelease(note.name + note.octaveIndex, "8n");
+            }
           }
         });
       }
