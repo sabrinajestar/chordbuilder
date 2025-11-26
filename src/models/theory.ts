@@ -68,7 +68,47 @@ export class Interval {
     }
 }
 
-class Chord {
+export class ChordModification {
+    interval: Interval;
+    name: string;
+    notation: string;
+    change: string;
+
+    constructor(interval: Interval, name: string, notation: string, change: string) {
+        this.interval = interval;
+        this.name = name;
+        this.notation = notation;
+        this.change = change;
+    }
+
+    static readonly AddedSecond = new ChordModification(Interval.MajorSecond, "added second", "add2", "1:new-note");
+    static readonly NoThird = new ChordModification(Interval.MajorThird, "no third", "no3", "2:remove-note");
+    static readonly FlatFifth = new ChordModification(Interval.MinorSecond, "flat fifth", "b5", "3:subtract-interval");
+    static readonly SharpFifth = new ChordModification(Interval.MinorSecond, "sharp fifth", "#5", "3:add-interval");
+    static readonly NoFifth = new ChordModification(Interval.PerfectFifth, "no fifth", "no5", "3:remove-note");
+    static readonly MajorSeventh = new ChordModification(Interval.MajorSeventh, "major seventh", "maj7", "1:new-note");
+    static readonly MinorSeventh = new ChordModification(Interval.MinorSeventh, "minor seventh", "m7", "1:new-note");
+    static readonly DominantSeventh = new ChordModification(Interval.MinorSeventh, "dominant seventh", "7", "1:new-note");
+    static readonly DiminishedSeventh = new ChordModification(Interval.MajorSixth, "diminished seventh", "dim7", "1:new-note");
+    static readonly AddSixth = new ChordModification(Interval.MajorSixth, "added sixth", "6", "1:new-note");
+    static readonly AddedFlatNinth = new ChordModification(Interval.MinorSecond, "added flat ninth", "b9", "1:new-note-plus-octave");
+    static readonly AddedNinth = new ChordModification(Interval.MajorSecond, "added ninth", "add9", "1:new-note-plus-octave");
+    static readonly AddedFlatEleventh = new ChordModification(Interval.MajorThird, "added flat eleventh", "b11", "1:new-note-plus-octave");
+    static readonly AddedEleventh = new ChordModification(Interval.PerfectFourth, "added eleventh", "add11", "1:new-note-plus-octave");
+    static readonly FirstInversion = new ChordModification(Interval.PerfectOctave, "first inversion", "6/3", "1:add-octave");
+    static readonly SecondInversion = new ChordModification(Interval.PerfectOctave, "second inversion", "6/4", "2:add-octave");
+    static readonly ThirdInversion = new ChordModification(Interval.PerfectOctave, "third inversion", "4/2", "3:add-octave");
+    
+    static readonly ChordMods = [
+        ChordModification.AddedSecond, ChordModification.NoThird, ChordModification.FlatFifth, ChordModification.SharpFifth,
+        ChordModification.MajorSeventh, ChordModification.MinorSeventh, ChordModification.DominantSeventh,
+        ChordModification.DiminishedSeventh, ChordModification.AddSixth, ChordModification.AddedNinth,
+        ChordModification.AddedFlatNinth, ChordModification.AddedEleventh, ChordModification.AddedFlatEleventh,
+        ChordModification.FirstInversion, ChordModification.SecondInversion, ChordModification.ThirdInversion
+    ];
+}
+
+export class Chord {
     classification: string;
     intervals: Interval[];
     notes: Note[];
@@ -91,10 +131,11 @@ class Chord {
     constructor(classification: string, intervals: Interval[]) {
         this.classification = classification;
         this.intervals = intervals;
+        this.notes = [];
     }
 
     get name(): string {
-        const name = (this.notes[0] !== null) ? this.notes[0].name + " " + this.classification : this.classification;
+        const name = (this.notes.length > 0) ? this.notes[0].name + " " + this.classification : this.classification;
         return name;
     }
 }
@@ -216,5 +257,53 @@ export function classifyChord(intervals: Interval[]): Chord {
     }
 
     return new Chord("unclassified chord", intervals);
+}
+
+export function applyChordModification(chord: Chord, modification: ChordModification): Chord {
+    const newChord = new Chord(chord.classification, chord.intervals.slice());
+    newChord.notes = chord.notes.slice();
+
+    const changeParts = modification.change.split(":");
+    const action = changeParts[1];
+    const target = parseInt(changeParts[0]);
+
+    switch (action) {
+        case "add-interval":
+            newChord.notes[target - 1] = selectNextNote(newChord.notes[target - 1], modification.interval);
+            break;
+        case "subtract-interval":
+            let negativeInterval = new Interval("negative " + modification.interval.name, 12 - modification.interval.steps);
+            newChord.notes[target - 1] = selectNextNote(newChord.notes[target - 1], negativeInterval);
+            break;
+        case "remove-note":
+            if (newChord.notes && target - 1 < newChord.notes.length) {
+                newChord.notes.splice(target - 1, 1);
+            }
+            break;
+        case "new-note":
+            if (newChord.notes) {
+                const newNote = selectNextNote(newChord.notes[0], modification.interval);
+                newChord.notes.push(newNote);
+            }
+            break;
+        case "new-note-plus-octave":
+            if (newChord.notes) {
+                let newNote = selectNextNote(newChord.notes[0], modification.interval);
+                newNote = new Note(newNote.name, newNote.index, newNote.octaveIndex + 1);
+                newChord.notes.push(newNote);
+            }
+            break;
+        case "add-octave":
+            if (newChord.notes && target - 1 < newChord.notes.length) {
+                const noteToModify = newChord.notes[target - 1];
+                const modifiedNote = new Note(noteToModify.name, noteToModify.index, noteToModify.octaveIndex + 1);
+                newChord.notes[target - 1] = modifiedNote;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return newChord;
 }
 

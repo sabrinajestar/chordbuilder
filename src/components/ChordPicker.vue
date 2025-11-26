@@ -1,5 +1,5 @@
 <template>
-  <div id="scalepicker">
+  <div id="chordpicker">
     <p>Select a Chord</p>
     <div>
       <div class="chordSelected" @click="selectChord(chord)"

@@ -3,8 +3,7 @@
     <v-container>
       <v-row>
         <v-col>
-          <div>current Key: {{ currentKey ? currentKey.name : 'No key selected' }}</div>
-          <div>current Scale: {{ currentScale ? currentScale.name : 'No scale selected' }}</div>
+          <div>current Key & Scale: {{ currentKey && currentScale ? currentKey.name + ' ' + currentScale.name : 'No key or scale selected' }}</div>
           <div>scale Triads: {{ keyChords ? keyChords.map(chord => chord.name).join(', ') : 'No triads available' }}</div>
         </v-col>
       </v-row>
@@ -24,6 +23,9 @@
           </v-row>
         </v-col>
       </v-row>
+      <v-row>
+        <ChordBuilder :scaleNotes="keyNotes"></ChordBuilder>
+      </v-row>
     </v-container>
   </div>
 </template>
@@ -33,6 +35,7 @@ import Keyboard from './components/Keyboard.vue'
 import KeyPicker from './components/KeyPicker.vue';
 import ScalePicker from './components/ScalePicker.vue';
 import ChordPicker from './components/ChordPicker.vue';
+import ChordBuilder from './components/ChordBuilder.vue';
 import { buildScale, buildScaleTriads } from './models/theory';
 
 export default {
@@ -41,7 +44,8 @@ export default {
     Keyboard,
     KeyPicker,
     ScalePicker,
-    ChordPicker
+    ChordPicker,
+    ChordBuilder
   },
   data() {
     return {
