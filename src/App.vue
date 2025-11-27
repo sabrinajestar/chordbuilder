@@ -24,7 +24,7 @@
         </v-col>
       </v-row>
       <v-row>
-        <ChordBuilder :scaleNotes="keyNotes"></ChordBuilder>
+        <ChordBuilder @select-chord="handleChordSelection" :scaleNotes="keyNotes"></ChordBuilder>
       </v-row>
     </v-container>
   </div>
@@ -83,7 +83,7 @@ export default {
       if (this.currentKey && this.currentScale) {
         this.keyNotes = buildScale(this.currentKey, this.currentScale);
         this.keyChords = buildScaleTriads(this.currentKey, this.currentScale);
-        // console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyChords)));
+        console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyChords)));
       }
     }
   }
