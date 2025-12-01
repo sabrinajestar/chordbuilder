@@ -4,7 +4,8 @@
     <div>
       <v-container>
         <v-row>
-          <p>Build a Chord</p><div class="resetButton" @click="resetSelections">Reset Chord</div>
+          <div class="button" @click="resetSelections">Reset Chord</div>
+          <div class="button">Add to Chord Progression</div>
         </v-row>
         <v-row>
           <div>Select Chord Root</div>
@@ -134,7 +135,7 @@ a {
 #chordbuilder{
   text-align: left;
 }
-.rootSelect, .baseChordSelect, .chordModsSelect, .resetButton{
+.rootSelect, .baseChordSelect, .chordModsSelect, .button{
   text-align: center;
   height:30px;
   border: 1px solid black;

@@ -21,7 +21,12 @@
         </v-col>
       </v-row>
       <v-row>
-        <ChordBuilder @select-chord="handleChordSelection" :scaleNotes="keyNotes"></ChordBuilder>
+        <v-col cols="6">
+          Chord Progression tool goes here
+        </v-col>
+        <v-col cols="6">
+          <ChordBuilder @select-chord="handleChordSelection" :scaleNotes="keyNotes"></ChordBuilder>
+        </v-col>
       </v-row>
     </v-container>
   </div>
