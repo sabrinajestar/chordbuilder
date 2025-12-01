@@ -70,10 +70,10 @@ export default {
     setChordNotes() {
       if (this.currentRoot && this.currentChord) {
         this.currentChord.notes = popuplateChordNotes(this.currentRoot, this.currentChord);
-        this.chordNotes = this.currentChord.notes
+        // this.chordNotes = this.currentChord.notes
         console.log('chord after buildChord:', JSON.parse(JSON.stringify(this.currentChord)));
-        console.log('Updated chord notes:', JSON.parse(JSON.stringify(this.chordNotes)));
-        this.$emit('select-chord', this.chordNotes);
+        // console.log('Updated chord notes:', JSON.parse(JSON.stringify(this.chordNotes)));
+        this.$emit('select-chord', this.currentChord);
       }
     },
     selectChordRoot(note) {
@@ -96,7 +96,7 @@ export default {
       console.log('Current chord modifications:', JSON.parse(JSON.stringify(this.currentChordMods)));
       applyChordModification(this.currentChord, chordmod);
       console.log('Chord after modification:', JSON.parse(JSON.stringify(this.currentChord)));
-      this.$emit('select-chord', this.currentChord.notes);
+      this.$emit('select-chord', this.currentChord);
     },
     resetSelections() {
       this.currentRoot = null;

@@ -59,7 +59,8 @@ export default {
   methods: {
     handleChordSelection(chord) {
       console.log('Selected chord in App:', JSON.parse(JSON.stringify(chord)));
-      this.chordNotes = chord ? chord.notes : null;
+      this.chordNotes = chord ? [...chord.notes] : null;
+      console.log('Updated chord notes in App:', JSON.parse(JSON.stringify(this.chordNotes)));
       // Additional logic for handling chord selection can be added here
     },
     handleKeySelection(note) {
