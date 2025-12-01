@@ -61,11 +61,11 @@ a {
 }
 .keytonics{
   text-align: center;
-  width:40px;
-  height:40px;
+  width:30px;
+  height:30px;
   border: 1px solid black;
   margin: 2px;
-  line-height: 40px;
+  line-height: 30px;
   float: left;
   cursor: pointer;
 }

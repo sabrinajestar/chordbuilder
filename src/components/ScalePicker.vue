@@ -62,13 +62,13 @@ a {
 }
 .scaleSelected{
   text-align: center;
-  height:40px;
+  height:30px;
   border: 1px solid black;
   margin: 2px;
-  line-height: 40px;
+  line-height: 30px;
   float: left;
   cursor: pointer;
-  padding: 0 10px 0 10px;
+  padding: 0 5px 0 5px;
 }
 .currentScale{
   background-color: yellow;
