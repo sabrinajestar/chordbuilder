@@ -108,13 +108,25 @@ export default {
           const circleElement = document.getElementById(`${note.name}${note.octaveIndex}`+'circ');
           console.log("looking for circleElement: " + `${note.name}${note.octaveIndex}`+'circ');
           console.log("circleElement found:", circleElement);
-          if (circleElement) {
-            circleElement.style.fill = 'red';
-            circleElement.style.display = 'block';
-            if(sound && synth && typeof synth.triggerAttackRelease === 'function') {
-              console.log("Playing note:", note.name + note.octaveIndex);
-              synth.triggerAttackRelease(note.name + note.octaveIndex, "8n");
+          var onKey = false;
+          for (let scaleNote in this.scaleNotes) {
+            if (note.name === this.scaleNotes[scaleNote].name) {
+              onKey = true;
+              break;
             }
+          }
+          if (circleElement) {
+            if (onKey) {
+              circleElement.style.fill = 'green';
+            } else {
+              console.log("Note", note, "not in scaleNotes", this.scaleNotes);
+              circleElement.style.fill = 'red';
+            }
+            circleElement.style.display = 'block';
+          }
+          if(sound && synth && typeof synth.triggerAttackRelease === 'function') {
+            console.log("Playing note:", note.name + note.octaveIndex);
+            synth.triggerAttackRelease(note.name + note.octaveIndex, "8n");
           }
         });
       }

@@ -18,9 +18,6 @@
           <v-row>
             <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
           </v-row>
-          <v-row>
-            <ChordPicker :chords="keyChords" @select-chord="handleChordSelection"></ChordPicker>
-          </v-row>
         </v-col>
       </v-row>
       <v-row>
@@ -34,7 +31,6 @@
 import Keyboard from './components/Keyboard.vue'
 import KeyPicker from './components/KeyPicker.vue';
 import ScalePicker from './components/ScalePicker.vue';
-import ChordPicker from './components/ChordPicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
 import { buildScale, buildScaleTriads } from './models/theory';
 
@@ -44,7 +40,6 @@ export default {
     Keyboard,
     KeyPicker,
     ScalePicker,
-    ChordPicker,
     ChordBuilder
   },
   data() {
