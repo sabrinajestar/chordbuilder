@@ -292,13 +292,13 @@ export function applyChordModification(chord: Chord, modification: ChordModifica
             break;
         case "new-note":
             if (chord.notes) {
-                const newNote = selectNextNote(chord.notes[0], modification.interval);
+                const newNote = selectNextNote(chord.rootNote, modification.interval);
                 chord.notes.push(newNote);
             }
             break;
         case "new-note-plus-octave":
             if (chord.notes) {
-                let newNote = selectNextNote(chord.notes[0], modification.interval);
+                let newNote = selectNextNote(chord.rootNote, modification.interval);
                 newNote = new Note(newNote.name, newNote.index, newNote.octaveIndex + 1);
                 chord.notes.push(newNote);
             }
