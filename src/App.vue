@@ -58,9 +58,9 @@ export default {
   },
   methods: {
     handleChordSelection(chord) {
-      console.log('Selected chord in App:', JSON.parse(JSON.stringify(chord)));
+      // console.log('Selected chord in App:', JSON.parse(JSON.stringify(chord)));
       this.chordNotes = chord ? [...chord.notes] : null;
-      console.log('Updated chord notes in App:', JSON.parse(JSON.stringify(this.chordNotes)));
+      // console.log('Updated chord notes in App:', JSON.parse(JSON.stringify(this.chordNotes)));
       // Additional logic for handling chord selection can be added here
     },
     handleKeySelection(note) {
@@ -84,7 +84,7 @@ export default {
       if (this.currentKey && this.currentScale) {
         this.keyNotes = buildScale(this.currentKey, this.currentScale);
         this.keyChords = buildScaleTriads(this.currentKey, this.currentScale);
-        console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyChords)));
+        // console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyChords)));
       }
     }
   }

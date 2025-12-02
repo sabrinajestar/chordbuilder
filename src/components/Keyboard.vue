@@ -104,10 +104,10 @@ export default {
 
       if (newChordNotes) {
         newChordNotes.forEach(note => {
-          console.log("Highlighting chord note on keyboard:", note.name + note.octaveIndex);
+          // console.log("Highlighting chord note on keyboard:", note.name + note.octaveIndex);
           const circleElement = document.getElementById(`${note.name}${note.octaveIndex}`+'circ');
-          console.log("looking for circleElement: " + `${note.name}${note.octaveIndex}`+'circ');
-          console.log("circleElement found:", circleElement);
+          // console.log("looking for circleElement: " + `${note.name}${note.octaveIndex}`+'circ');
+          // console.log("circleElement found:", circleElement);
           var onKey = false;
           for (let scaleNote in this.scaleNotes) {
             if (note.name === this.scaleNotes[scaleNote].name) {
@@ -119,13 +119,13 @@ export default {
             if (onKey) {
               circleElement.style.fill = 'green';
             } else {
-              console.log("Note", note, "not in scaleNotes", this.scaleNotes);
+              // console.log("Note", note, "not in scaleNotes", this.scaleNotes);
               circleElement.style.fill = 'red';
             }
             circleElement.style.display = 'block';
           }
           if(sound && synth && typeof synth.triggerAttackRelease === 'function') {
-            console.log("Playing note:", note.name + note.octaveIndex);
+            // console.log("Playing note:", note.name + note.octaveIndex);
             synth.triggerAttackRelease(note.name + note.octaveIndex, "8n");
           }
         });
