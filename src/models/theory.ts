@@ -333,3 +333,13 @@ export function applyChordModification(chord: Chord, modification: ChordModifica
     return chord;
 }
 
+export function displaySharpsAndFlats(notename: string): string {
+    if (notename.includes('#')) {
+        return notename.replace('#', '♯');
+    } else if (notename.includes('b')) {
+        return notename.replace('b', '♭');
+    } else {
+        return notename;
+    }
+}
+

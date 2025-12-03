@@ -13,7 +13,7 @@
         <v-row>
           <div class="rootSelect" @click="selectChordRoot(note)"
           :class="{ 'currentRoot': currentRoot && note.name === currentRoot.name }"
-          v-for="note in notes" :key="note.name">{{ note.name }}
+          v-for="note in notes" :key="note.name">{{ displaySharpsAndFlats(note.name) }}
           </div>
         </v-row>
         <v-row>
@@ -22,15 +22,15 @@
         <v-row>
           <div class="baseChordSelect" @click="selectBaseChord(chord)"
           :class="{ 'currentBaseChord': currentBaseChord && chord.name === currentBaseChord.name }"
-          v-for="chord in chords" :key="chord.name">{{ chord.name }}
+          v-for="chord in chords" :key="chord.name">{{ displaySharpsAndFlats(chord.name) }}
           </div>
         </v-row>
         <v-row>
-          <div>Select Chord Modifications</div> {{ currentChordMods.length > 0 ? '(Current: ' + currentChordMods.map(mod => mod.notation).join(', ') + ')' : '' }}
+          <div>Select Chord Modifications</div> {{ currentChordMods.length > 0 ? '(Current: ' + currentChordMods.map(mod => displaySharpsAndFlats(mod.notation)).join(', ') + ')' : '' }}
         </v-row>
         <v-row>
           <div @click="toggleChordMod(chordmod)" :class="setChordModClass(chordmod)"
-          v-for="chordmod in chordMods" :key="chordmod.name">{{ chordmod.notation }}
+          v-for="chordmod in chordMods" :key="chordmod.name">{{ displaySharpsAndFlats(chordmod.notation) }}
           </div>
         </v-row>
       </v-container>
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { Note, Chord, ChordModification, popuplateChordNotes, applyChordModification } from '../models/theory.ts';
+import { Note, Chord, ChordModification, popuplateChordNotes, applyChordModification, displaySharpsAndFlats } from '../models/theory.ts';
 
 export default {
   name: 'ChordBuilder',
@@ -67,6 +67,7 @@ export default {
     },
   },
   methods: {
+    displaySharpsAndFlats,
     setChordModClass(mod) {
       var modClass = 'chordModsSelect';
       if (!this.currentBaseChord || !this.currentRoot) {
@@ -94,6 +95,7 @@ export default {
       // eslint-disable-next-line no-console
       // console.log('Selected chord root:', JSON.parse(JSON.stringify(note)));
       this.setChordNotes();
+      this.currentChordMods = [];
     },
     selectBaseChord(chord) {
       this.currentBaseChord = chord;
@@ -101,6 +103,7 @@ export default {
       // eslint-disable-next-line no-console
       // console.log('Selected base chord:', JSON.parse(JSON.stringify(chord)));
       this.setChordNotes();
+      this.currentChordMods = [];
     },
     toggleChordMod(chordmod) {
       if (!this.currentBaseChord || !this.currentRoot) {

@@ -4,13 +4,13 @@
     <div>
       <div class="scaleSelected" @click="selectScale(scale)"
       :class="{ 'currentScale': currentScale && scale.name === currentScale.name }"
-       v-for="scale in scales" :key="scale.name">{{ scale.name }}</div>
+       v-for="scale in scales" :key="scale.name">{{ displaySharpsAndFlats(scale.name) }}</div>
     </div>
   </div>
 </template>
 
 <script>
-import { Scale } from '../models/theory.ts';
+import { Scale, displaySharpsAndFlats } from '../models/theory.ts';
 
 export default {
   name: 'ScalePicker',
@@ -24,14 +24,13 @@ export default {
     };
   },
   methods: {
+    displaySharpsAndFlats,
     selectScale(scale) {
       // Emit the selected scale to the parent component
       this.$emit('select-scale', scale);
       this.currentScale = scale;
       // eslint-disable-next-line no-console
       // console.log('Selected scale:', JSON.parse(JSON.stringify(scale)));
-      
-
     }
   },
   mounted() {
