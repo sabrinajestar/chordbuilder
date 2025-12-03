@@ -5,13 +5,13 @@
       <div class="keytonics"
       :class="{ 'currentTonic': currentTonic && note.index === currentTonic.index }" 
       @click="selectKey(note)"
-      v-for="note in notes" :key="note.index">{{ displaySharpsAndFlats(note.name) }}</div>
+      v-for="note in notes" :key="note.index">{{ note.displayName || note.name }}</div>
     </div>
   </div>
 </template>
 
 <script>
-import { Note, displaySharpsAndFlats } from '../models/theory.ts';
+import { Note } from '../models/theory.ts';
 
 export default {
   name: 'KeyPicker',
@@ -25,7 +25,6 @@ export default {
     };
   },
   methods: {
-    displaySharpsAndFlats,
     selectKey(note) {
       // console.log('In KeyPicker, selectKey called with note:', note.name);
       this.$emit('select-key', note);

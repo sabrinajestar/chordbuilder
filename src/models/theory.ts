@@ -1,29 +1,21 @@
-class Octave {
-    name: string;
-    index: number;
-
-    constructor(name: string, index: number) {
-        this.name = name;
-        this.index = index;
-    }
-}
-
 export class Note {
     name: string;
+    displayName?: string;
+    altDisplayName?: string;
     index: number;
     octaveIndex: number;
 
     static readonly C = new Note("C", 0);
-    static readonly CSHARP = new Note("C#", 1);
+    static readonly CSHARP = new Note("C#", 1, 3, "C♯", "D♭");
     static readonly D = new Note("D", 2);
-    static readonly DSHARP = new Note("D#", 3);
+    static readonly DSHARP = new Note("D#", 3, 3, "D♯", "E♭");
     static readonly E = new Note("E", 4);
     static readonly F = new Note("F", 5);
-    static readonly FSHARP = new Note("F#", 6);
+    static readonly FSHARP = new Note("F#", 6, 3, "F♯", "G♭");
     static readonly G = new Note("G", 7);
-    static readonly GSHARP = new Note("G#", 8);
+    static readonly GSHARP = new Note("G#", 8, 3, "G♯", "A♭");
     static readonly A = new Note("A", 9);
-    static readonly ASHARP = new Note("A#", 10);
+    static readonly ASHARP = new Note("A#", 10, 3, "A♯", "B♭");
     static readonly B = new Note("B", 11);
     static readonly NullNote = new Note("", -1);
     static readonly Notes = [
@@ -32,10 +24,12 @@ export class Note {
         Note.GSHARP, Note.A, Note.ASHARP, Note.B
     ];
 
-    constructor(name: string, index: number, octaveIndex: number = 3) {
+    constructor(name: string, index: number, octaveIndex: number = 3, displayName?: string, altDisplayName?: string) {
         this.name = name;
         this.index = index;
         this.octaveIndex = octaveIndex;
+        this.displayName = displayName;
+        this.altDisplayName = altDisplayName;
     }
 }
 
@@ -83,24 +77,22 @@ export class ChordModification {
     }
 
     static readonly AddedSecond = new ChordModification(Interval.MajorSecond, "added second", "add2", "1:new-note");
-    static readonly FlatThird = new ChordModification(Interval.MinorSecond, "flat third", "b3", "2:subtract-interval");
     static readonly NoThird = new ChordModification(Interval.MajorThird, "no third", "no3", "2:remove-note");
-    static readonly SharpThird = new ChordModification(Interval.MinorSecond, "sharp third", "#3", "2:add-interval");
-    static readonly FlatFifth = new ChordModification(Interval.MinorSecond, "flat fifth", "b5", "3:subtract-interval");
-    static readonly SharpFifth = new ChordModification(Interval.MinorSecond, "sharp fifth", "#5", "3:add-interval");
+    static readonly FlatFifth = new ChordModification(Interval.MinorSecond, "flat fifth", "♭5", "3:subtract-interval");
+    static readonly SharpFifth = new ChordModification(Interval.MinorSecond, "sharp fifth", "♯5", "3:add-interval");
     static readonly NoFifth = new ChordModification(Interval.PerfectFifth, "no fifth", "no5", "3:remove-note");
     static readonly AddSixth = new ChordModification(Interval.MajorSixth, "added sixth", "6", "1:new-note");
-    static readonly AddedFlatNinth = new ChordModification(Interval.MinorSecond, "added flat ninth", "b9", "1:new-note-plus-octave");
+    static readonly AddedFlatNinth = new ChordModification(Interval.MinorSecond, "added flat ninth", "♭9", "1:new-note-plus-octave");
     static readonly AddedNinth = new ChordModification(Interval.MajorSecond, "added ninth", "add9", "1:new-note-plus-octave");
-    static readonly AddedFlatEleventh = new ChordModification(Interval.MajorThird, "added flat eleventh", "b11", "1:new-note-plus-octave");
+    static readonly AddedFlatEleventh = new ChordModification(Interval.MajorThird, "added flat eleventh", "♭11", "1:new-note-plus-octave");
     static readonly AddedEleventh = new ChordModification(Interval.PerfectFourth, "added eleventh", "add11", "1:new-note-plus-octave");
     static readonly FirstInversion = new ChordModification(Interval.PerfectOctave, "first inversion", "I/III", "1:invert");
     static readonly SecondInversion = new ChordModification(Interval.PerfectOctave, "second inversion", "I/V", "2:invert");
     static readonly ThirdInversion = new ChordModification(Interval.PerfectOctave, "third inversion", "I/VII", "3:invert");
     
     static readonly ChordMods = [
-        ChordModification.AddedSecond, ChordModification.FlatThird, ChordModification.NoThird, ChordModification.SharpThird, 
-        ChordModification.FlatFifth, ChordModification.NoFifth, ChordModification.SharpFifth, ChordModification.AddSixth, 
+        ChordModification.AddedSecond, ChordModification.NoThird, ChordModification.FlatFifth, 
+        ChordModification.NoFifth, ChordModification.SharpFifth, ChordModification.AddSixth, 
         ChordModification.AddedFlatNinth, ChordModification.AddedNinth, ChordModification.AddedFlatEleventh, 
         ChordModification.AddedEleventh, ChordModification.FirstInversion, ChordModification.SecondInversion, 
         ChordModification.ThirdInversion
@@ -144,7 +136,12 @@ export class Chord {
     }
 
     get name(): string {
-        const name = (this.notes.length > 0) ? this.notes[0].name + " " + this.classification : this.classification;
+        // console.log("Getting chord name for:", this);
+        const rootName = this.rootNote ? (this.rootNote.displayName || this.rootNote.name) : 
+            this.notes.length > 0 ? (this.notes[0].displayName || this.notes[0].name) : 
+            undefined;
+        // console.log("Chord rootName:", rootName);
+        const name = rootName !== undefined ? rootName + " " + this.classification : this.classification;
         return name;
     }
 }
@@ -184,7 +181,7 @@ function selectNextNote(note: Note, interval: Interval): Note {
         octaveIndex += 1;
     }
     const proto = Note.Notes[newIndex];
-    const newNote = new Note(proto.name, proto.index, octaveIndex);
+    const newNote = new Note(proto.name, proto.index, octaveIndex, proto.displayName, proto.altDisplayName);
     return newNote
 }
 
@@ -332,14 +329,3 @@ export function applyChordModification(chord: Chord, modification: ChordModifica
 
     return chord;
 }
-
-export function displaySharpsAndFlats(notename: string): string {
-    if (notename.includes('#')) {
-        return notename.replace('#', '♯');
-    } else if (notename.includes('b')) {
-        return notename.replace('b', '♭');
-    } else {
-        return notename;
-    }
-}
-

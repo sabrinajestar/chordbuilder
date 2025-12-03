@@ -3,8 +3,8 @@
     <v-container>
       <v-row>
         <v-col>
-          <div>current Key & Scale: {{ currentKey && currentScale ? displaySharpsAndFlats(currentKey.name) + ' ' + displaySharpsAndFlats(currentScale.name) : 'No key or scale selected' }}</div>
-          <div>scale Triads: {{ keyChords ? keyChords.map(chord => displaySharpsAndFlats(chord.name)).join(', ') : 'No triads available' }}</div>
+          <div>current Key & Scale: {{ currentKey && currentScale ? (currentKey.displayName || currentKey.name) + ' ' + currentScale.name : 'No key or scale selected' }}</div>
+          <div>scale Triads: {{ keyChords ? keyChords.map(chord => chord.name).join(', ') : 'No triads available' }}</div>
         </v-col>
       </v-row>
       <v-row>
@@ -37,7 +37,7 @@ import Keyboard from './components/Keyboard.vue'
 import KeyPicker from './components/KeyPicker.vue';
 import ScalePicker from './components/ScalePicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
-import { buildScale, buildScaleTriads, displaySharpsAndFlats } from './models/theory';
+import { buildScale, buildScaleTriads } from './models/theory';
 
 export default {
   name: 'App',
@@ -57,7 +57,6 @@ export default {
     };
   },
   methods: {
-    displaySharpsAndFlats,
     handleChordSelection(chord) {
       // console.log('Selected chord in App:', JSON.parse(JSON.stringify(chord)));
       this.chordNotes = chord ? [...chord.notes] : null;

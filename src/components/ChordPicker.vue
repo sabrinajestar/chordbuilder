@@ -4,14 +4,12 @@
     <div>
       <div class="chordSelected" @click="selectChord(chord)"
       :class="{ 'currentChord': currentChord && chord.name === currentChord.name }"
-       v-for="chord in chords" :key="chord.name">{{ displaySharpsAndFlats(chord.name) }}</div>
+       v-for="chord in chords" :key="chord.name">{{ chord.name }}</div>
     </div>
   </div>
 </template>
 
 <script>
-import { displaySharpsAndFlats } from '@/models/theory';
-
 export default {
   name: 'ChordPicker',
   props: {

@@ -13,7 +13,7 @@
         <v-row>
           <div class="rootSelect" @click="selectChordRoot(note)"
           :class="{ 'currentRoot': currentRoot && note.name === currentRoot.name }"
-          v-for="note in notes" :key="note.name">{{ displaySharpsAndFlats(note.name) }}
+          v-for="note in notes" :key="note.name">{{ note.displayName || note.name }}
           </div>
         </v-row>
         <v-row>
@@ -22,15 +22,15 @@
         <v-row>
           <div class="baseChordSelect" @click="selectBaseChord(chord)"
           :class="{ 'currentBaseChord': currentBaseChord && chord.name === currentBaseChord.name }"
-          v-for="chord in chords" :key="chord.name">{{ displaySharpsAndFlats(chord.name) }}
+          v-for="chord in chords" :key="chord.name">{{ chord.name }}
           </div>
         </v-row>
         <v-row>
-          <div>Select Chord Modifications</div> {{ currentChordMods.length > 0 ? '(Current: ' + currentChordMods.map(mod => displaySharpsAndFlats(mod.notation)).join(', ') + ')' : '' }}
+          <div>Select Chord Modifications</div> {{ currentChordMods.length > 0 ? '(Current: ' + currentChordMods.map(mod => mod.notation).join(', ') + ')' : '' }}
         </v-row>
         <v-row>
           <div @click="toggleChordMod(chordmod)" :class="setChordModClass(chordmod)"
-          v-for="chordmod in chordMods" :key="chordmod.name">{{ displaySharpsAndFlats(chordmod.notation) }}
+          v-for="chordmod in chordMods" :key="chordmod.name">{{ chordmod.notation }}
           </div>
         </v-row>
       </v-container>
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { Note, Chord, ChordModification, popuplateChordNotes, applyChordModification, displaySharpsAndFlats } from '../models/theory.ts';
+import { Note, Chord, ChordModification, popuplateChordNotes, applyChordModification } from '../models/theory.ts';
 
 export default {
   name: 'ChordBuilder',
@@ -67,7 +67,6 @@ export default {
     },
   },
   methods: {
-    displaySharpsAndFlats,
     setChordModClass(mod) {
       var modClass = 'chordModsSelect';
       if (!this.currentBaseChord || !this.currentRoot) {
@@ -130,7 +129,7 @@ export default {
     },
     removeConflictingMods(newMod) {
       console.log('Removing conflicting modifications for:', JSON.parse(JSON.stringify(newMod)));
-      const conflictingMods = [['b5', '#5', 'no5'], ['no3', 'b3', '#3'], ['b9', 'add9'], ['b11', 'add11'], ['I/III', 'I/V', 'I/VII']];
+      const conflictingMods = [['♭5', '♯5', 'no5'], ['♭9', 'add9'], ['♭11', 'add11'], ['I/III', 'I/V', 'I/VII']];
       conflictingMods.forEach(group => {
         if (group.includes(newMod.notation)) {
           console.log('Conflicting group found:', JSON.parse(JSON.stringify(group)), "for mod:", JSON.stringify(newMod));
