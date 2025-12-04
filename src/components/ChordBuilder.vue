@@ -26,7 +26,7 @@
           </div>
         </v-row>
         <v-row>
-          <div>Select Chord Modifications</div> {{ currentChordMods.length > 0 ? '(Current: ' + currentChordMods.map(mod => mod.notation).join(', ') + ')' : '' }}
+          <div>Select Chord Modifications</div> {{ currentChord && currentChord.modifications.length > 0 ? '(Current: ' + currentChord.modifications.map(mod => mod.notation).join(', ') + ')' : '' }}
         </v-row>
         <v-row>
           <div @click="toggleChordMod(chordmod)" :class="setChordModClass(chordmod)"
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { Note, Chord, ChordModification, popuplateChordNotes, applyChordModification, Step } from '../models/theory.ts';
+import { Note, Chord, ChordModification, cloneChord, popuplateChordNotes, toggleChordModification, applyChordModifications, Step } from '../models/theory.ts';
 
 export default {
   name: 'ChordBuilder',
@@ -51,7 +51,6 @@ export default {
       currentRoot: null,
       currentBaseChord: null,
       currentChord: null,
-      currentChordMods: [],
       chordNotes: null
     };
   },
@@ -75,17 +74,14 @@ export default {
         // don't allow third inversion if not a seventh chord
         modClass += ' chordModsDisabled';
       }
-      if (this.currentChordMods && this.currentChordMods.some(m => m.name === mod.name)) {
-        modClass += ' currentChordMods';
+      if (this.currentChord !== null && this.currentChord.modifications && this.currentChord.modifications.some(m => m.name === mod.name)) {
+        modClass += ' currentChords';
       }
       return modClass;
     },
     setChordNotes() {
       if (this.currentRoot && this.currentChord) {
         this.currentChord.notes = popuplateChordNotes(this.currentRoot, this.currentChord);
-        // this.chordNotes = this.currentChord.notes
-        // console.log('chord after buildChord:', JSON.parse(JSON.stringify(this.currentChord)));
-        // console.log('Updated chord notes:', JSON.parse(JSON.stringify(this.chordNotes)));
         this.$emit('select-chord', this.currentChord);
       }
     },
@@ -94,37 +90,26 @@ export default {
       // eslint-disable-next-line no-console
       // console.log('Selected chord root:', JSON.parse(JSON.stringify(note)));
       this.setChordNotes();
-      this.currentChordMods = [];
     },
     selectBaseChord(chord) {
       this.currentBaseChord = chord;
-      this.currentChord = new Chord(chord.classification, chord.intervals, chord.notes);
+      this.currentChord = cloneChord(chord);
       // eslint-disable-next-line no-console
       // console.log('Selected base chord:', JSON.parse(JSON.stringify(chord)));
       this.setChordNotes();
-      this.currentChordMods = [];
     },
     toggleChordMod(chordmod) {
       if (!this.currentBaseChord || !this.currentRoot) {
         return;
       }
-      if (this.currentChordMods.includes(chordmod)) {
-        console.log('Removing chord modification:', JSON.parse(JSON.stringify(chordmod)));
-        // If already selected, remove it
-        this.currentChordMods = this.currentChordMods.filter(mod => mod.name !== chordmod.name);
-        console.log('Current chord modifications after removal:', JSON.parse(JSON.stringify(this.currentChordMods)));
-      } else {
-        this.removeConflictingMods(chordmod);
-        this.currentChordMods.push(chordmod);
-      }
-      this.currentChord = new Chord(this.currentBaseChord.classification, this.currentBaseChord.intervals, this.currentBaseChord.notes);
+      this.currentChord = toggleChordModification(this.currentChord, chordmod);
       this.setChordNotes();
       console.log('current chord before reapplying chord modifications', JSON.parse(JSON.stringify(this.currentChord)));
-      this.currentChordMods.forEach(mod => applyChordModification(this.currentChord, mod));
+      this.currentChord = applyChordModifications(this.currentChord);
       // // eslint-disable-next-line no-console
       // console.log('Selected chord modification:', JSON.parse(JSON.stringify(chordmod)));
-      console.log('Current chord modifications after toggle and filtering:', JSON.parse(JSON.stringify(this.currentChordMods)));
-      console.log('Chord after modification toggle:', JSON.parse(JSON.stringify(this.currentChord)));
+      // console.log('Current chord modifications after toggle and filtering:', JSON.parse(JSON.stringify(this.currentChord.modifications)));
+      // console.log('Chord after modification toggle:', JSON.parse(JSON.stringify(this.currentChord)));
       this.$emit('select-chord', this.currentChord);
     },
     removeConflictingMods(newMod) {
@@ -133,16 +118,15 @@ export default {
       conflictingMods.forEach(group => {
         if (group.includes(newMod.notation)) {
           console.log('Conflicting group found:', JSON.parse(JSON.stringify(group)), "for mod:", JSON.stringify(newMod));
-          this.currentChordMods = this.currentChordMods.filter(mod => !group.includes(mod.notation));
+          this.currentChord.modifications = this.currentChord.modifications.filter(mod => !group.includes(mod.notation));
         }
       });
-      console.log('Current chord modifications after removing conflicts:', JSON.parse(JSON.stringify(this.currentChordMods)));
+      console.log('Current chord modifications after removing conflicts:', JSON.parse(JSON.stringify(this.currentChord.modifications)));
     },
     resetSelections() {
       this.currentRoot = null;
       this.currentBaseChord = null;
       this.currentChord = null;
-      this.currentChordMods = [];
       this.chordNotes = null;
       this.$emit('select-chord', null);
       // console.log('Selections have been reset.');
@@ -197,7 +181,7 @@ a {
   cursor: not-allowed;
   padding: 0 5px 0 5px;
 }
-.currentRoot, .currentChordMods, .currentBaseChord{
+.currentRoot, .currentChords, .currentBaseChord{
   background-color: yellow;
 }
 </style>

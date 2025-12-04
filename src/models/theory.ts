@@ -103,6 +103,7 @@ export class Chord {
     classification: string;
     intervals: Interval[];
     notes: Note[];
+    modifications: ChordModification[] = [];
     bassNote?: Note;
     rootNote?: Note;
 
@@ -284,8 +285,34 @@ export function classifyChord(intervals: Interval[]): Chord {
     return new Chord("unclassified chord", intervals);
 }
 
+export function applyChordModifications(chord: Chord): Chord {
+    let modifiedChord = chord;
+    for (let modification of chord.modifications) {
+        modifiedChord = applyChordModification(modifiedChord, modification);
+    }
+    return modifiedChord;
+}
+
+export function cloneChord(chord: Chord): Chord {
+    let newChord = new Chord(chord.classification, chord.intervals.slice(), chord.notes.slice());
+    newChord.modifications = chord.modifications.slice();
+    newChord.bassNote = chord.bassNote;
+    newChord.rootNote = chord.rootNote;
+    return newChord;
+}
+
+export function toggleChordModification(chord: Chord, modification: ChordModification): Chord {
+    let newChord = cloneChord(chord);
+    const modIndex = newChord.modifications.findIndex(mod => mod.name === modification.name);
+    if (modIndex >= 0) {
+        newChord.modifications.splice(modIndex, 1);
+    } else {
+        newChord.modifications.push(modification);
+    }
+    return newChord;
+}
+
 export function applyChordModification(chord: Chord, modification: ChordModification): Chord {
-    // let newChord = new Chord(chord.classification, chord.intervals, chord.notes);
     // console.log("Applying modification:", modification.name, " to chord:", chord);
     const changeParts = modification.change.split(":");
     const action = changeParts[1];
@@ -297,7 +324,7 @@ export function applyChordModification(chord: Chord, modification: ChordModifica
             chord.notes[target - 1] = selectNextNote(chord.notes[target - 1], modification.interval);
             break;
         case "subtract-interval":
-            let negativeInterval = new Interval("negative " + modification.interval.name, 12 - modification.interval.steps);
+            let negativeInterval = new Interval("negative " + modification.interval.name, modification.interval.steps * -1);
             chord.notes[target - 1] = selectNextNote(chord.notes[target - 1], negativeInterval);
             break;
         case "remove-note":
@@ -334,11 +361,7 @@ export function applyChordModification(chord: Chord, modification: ChordModifica
                     const invertedNote = new Note(notesToInvert[i].name, notesToInvert[i].index, notesToInvert[i].octaveIndex + 1);
                     chord.notes.push(invertedNote);
                 }
-                // const noteToInvert = notesToInvert.shift()!;
-                // const invertedNote = new Note(noteToInvert.name, noteToInvert.index, noteToInvert.octaveIndex + 1);
-                // notesToInvert.push(invertedNote);
                 chord.bassNote = chord.notes[0];
-                // chord.notes = notesToInvert.concat(chord.notes.slice(target));
             }
             break;
         default:
