@@ -146,6 +146,24 @@ export class Chord {
     }
 }
 
+export class Step {
+    beats: number;
+    chord: Chord;
+
+    constructor(beats: number, chord: Chord) {
+        this.beats = beats;
+        this.chord = chord;
+    }
+}
+
+export class ChordProgression {
+    steps: Step[];
+
+    constructor() {
+        this.steps = [];
+    }
+}
+
 export class Scale {
     name: string;
     intervals: Interval[];

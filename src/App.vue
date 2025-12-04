@@ -22,10 +22,10 @@
       </v-row>
       <v-row>
         <v-col cols="6">
-          Chord Progression tool goes here
+          <ChordProgressionView :progression="chordProgression"></ChordProgressionView>
         </v-col>
         <v-col cols="6">
-          <ChordBuilder @select-chord="handleChordSelection" :scaleNotes="keyNotes"></ChordBuilder>
+          <ChordBuilder @select-chord="handleChordSelection" :scaleNotes="keyNotes" @add-step-to-progression="handleAddStepToProgression"></ChordBuilder>
         </v-col>
       </v-row>
     </v-container>
@@ -37,7 +37,8 @@ import Keyboard from './components/Keyboard.vue'
 import KeyPicker from './components/KeyPicker.vue';
 import ScalePicker from './components/ScalePicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
-import { buildScale, buildScaleTriads } from './models/theory';
+import ChordProgressionView from './components/ChordProgressionView.vue';
+import { buildScale, buildScaleTriads, ChordProgression } from './models/theory';
 
 export default {
   name: 'App',
@@ -45,7 +46,8 @@ export default {
     Keyboard,
     KeyPicker,
     ScalePicker,
-    ChordBuilder
+    ChordBuilder,
+    ChordProgressionView
   },
   data() {
     return {
@@ -53,7 +55,8 @@ export default {
       currentScale: null,
       keyNotes: null,
       keyChords: null,
-      chordNotes: null
+      chordNotes: null,
+      chordProgression: new ChordProgression()
     };
   },
   methods: {
@@ -86,6 +89,11 @@ export default {
         this.keyChords = buildScaleTriads(this.currentKey, this.currentScale);
         // console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyChords)));
       }
+    },
+    handleAddStepToProgression(step) {
+      console.log('Adding step to progression in App:', JSON.parse(JSON.stringify(step)));
+      this.chordProgression.steps.push(step);
+      console.log('Updated chord progression in App:', JSON.parse(JSON.stringify(this.chordProgression)));
     }
   }
 }

@@ -5,7 +5,7 @@
       <v-container>
         <v-row>
           <div class="button" @click="resetSelections">Reset Chord</div>
-          <div class="button">Add to Chord Progression</div>
+          <div class="button" @click="addToProgression">Add to Chord Progression</div>
         </v-row>
         <v-row>
           <div>Select Chord Root</div>
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { Note, Chord, ChordModification, popuplateChordNotes, applyChordModification } from '../models/theory.ts';
+import { Note, Chord, ChordModification, popuplateChordNotes, applyChordModification, Step } from '../models/theory.ts';
 
 export default {
   name: 'ChordBuilder',
@@ -146,6 +146,14 @@ export default {
       this.chordNotes = null;
       this.$emit('select-chord', null);
       // console.log('Selections have been reset.');
+    },
+    addToProgression() {
+      if (this.currentChord) {
+        const dupeChord = new Chord(this.currentChord.classification, this.currentChord.intervals, this.currentChord.notes);
+        const step = new Step(4, dupeChord); // Assuming 4 beats for now
+        this.$emit('add-step-to-progression', step);
+        // console.log('Added chord to progression:', JSON.parse(JSON.stringify(step)));
+      }
     }
   }
 }
