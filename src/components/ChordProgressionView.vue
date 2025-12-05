@@ -3,7 +3,7 @@
     <p>Current Progression</p>
     <div>
       <div class="progressionsteps"
-      v-for="step in progression.steps" :key="step.chord.name">{{ step.chord.name }}</div>
+      v-for="step in progression.steps" :key="step.chord.name">{{ step.chord.notation }}</div>
     </div>
   </div>
 </template>

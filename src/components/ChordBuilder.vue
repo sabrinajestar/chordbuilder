@@ -4,6 +4,9 @@
     <div>
       <v-container>
         <v-row>
+          <div>{{ currentChord ? currentChord.notation : 'Choose Chord Root and Shape' }}</div>
+        </v-row>
+        <v-row>
           <div class="button" @click="resetSelections">Reset Chord</div>
           <div class="button" @click="addToProgression">Add to Chord Progression</div>
         </v-row>
@@ -20,9 +23,9 @@
           <div>Select Chord Shape</div>
         </v-row>
         <v-row>
-          <div class="baseChordSelect" @click="selectBaseChord(chord)"
-          :class="{ 'currentBaseChord': currentBaseChord && chord.name === currentBaseChord.name }"
-          v-for="chord in chords" :key="chord.name">{{ chord.name }}
+          <div class="shapeSelect" @click="selectShape(shape)"
+          :class="{ 'currentShape': currentShape && shape.name === currentShape.name }"
+          v-for="shape in shapes" :key="shape.name">{{ shape.name }}
           </div>
         </v-row>
         <v-row>
@@ -39,7 +42,7 @@
 </template>
 
 <script>
-import { Note, Chord, ChordModification, cloneChord, popuplateChordNotes, toggleChordModification, applyChordModifications, Step } from '../models/theory.ts';
+import { Note, Chord, ChordShape, ChordModification, popuplateChordNotes, cloneChord, toggleChordModification, applyChordModifications, Step } from '../models/theory.ts';
 
 export default {
   name: 'ChordBuilder',
@@ -49,7 +52,7 @@ export default {
   data() {
     return {
       currentRoot: null,
-      currentBaseChord: null,
+      currentShape: null,
       currentChord: null,
       chordNotes: null
     };
@@ -58,8 +61,8 @@ export default {
     notes() {
       return Note.Notes;
     },
-    chords() {
-      return Chord.Chords;
+    shapes() {
+      return ChordShape.ChordShapes;
     },
     chordMods() {
       return ChordModification.ChordMods;
@@ -68,9 +71,9 @@ export default {
   methods: {
     setChordModClass(mod) {
       var modClass = 'chordModsSelect';
-      if (!this.currentBaseChord || !this.currentRoot) {
+      if (!this.currentShape || !this.currentRoot) {
         modClass += ' chordModsDisabled';
-      } else if (mod.notation === 'I/VII' && this.currentBaseChord.name.toLowerCase().includes('seventh') === false) {
+      } else if (mod.notation === 'I/VII' && this.currentShape.name.toLowerCase().includes('seventh') === false) {
         // don't allow third inversion if not a seventh chord
         modClass += ' chordModsDisabled';
       }
@@ -91,15 +94,15 @@ export default {
       // console.log('Selected chord root:', JSON.parse(JSON.stringify(note)));
       this.setChordNotes();
     },
-    selectBaseChord(chord) {
-      this.currentBaseChord = chord;
-      this.currentChord = cloneChord(chord);
+    selectShape(shape) {
+      this.currentShape = shape;
+      this.currentChord = new Chord(this.currentRoot, shape);
       // eslint-disable-next-line no-console
-      // console.log('Selected base chord:', JSON.parse(JSON.stringify(chord)));
+      // console.log('Selected base chord:', JSON.parse(JSON.stringify(shape)));
       this.setChordNotes();
     },
     toggleChordMod(chordmod) {
-      if (!this.currentBaseChord || !this.currentRoot) {
+      if (!this.currentShape || !this.currentRoot) {
         return;
       }
       this.currentChord = toggleChordModification(this.currentChord, chordmod);
@@ -125,7 +128,7 @@ export default {
     },
     resetSelections() {
       this.currentRoot = null;
-      this.currentBaseChord = null;
+      this.currentShape = null;
       this.currentChord = null;
       this.chordNotes = null;
       this.$emit('select-chord', null);
@@ -133,8 +136,9 @@ export default {
     },
     addToProgression() {
       if (this.currentChord) {
-        const dupeChord = new Chord(this.currentChord.classification, this.currentChord.intervals, this.currentChord.notes);
+        const dupeChord = cloneChord(this.currentChord);
         const step = new Step(4, dupeChord); // Assuming 4 beats for now
+        this.resetSelections();
         this.$emit('add-step-to-progression', step);
         // console.log('Added chord to progression:', JSON.parse(JSON.stringify(step)));
       }
@@ -161,7 +165,7 @@ a {
 #chordbuilder{
   text-align: left;
 }
-.rootSelect, .baseChordSelect, .chordModsSelect, .button{
+.rootSelect, .shapeSelect, .chordModsSelect, .button{
   text-align: center;
   height:30px;
   border: 1px solid black;
@@ -181,7 +185,7 @@ a {
   cursor: not-allowed;
   padding: 0 5px 0 5px;
 }
-.currentRoot, .currentChords, .currentBaseChord{
+.currentRoot, .currentChords, .currentShape{
   background-color: yellow;
 }
 </style>

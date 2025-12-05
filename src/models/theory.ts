@@ -81,7 +81,7 @@ export class ChordModification {
     static readonly FlatFifth = new ChordModification(Interval.MinorSecond, "flat fifth", "♭5", "3:subtract-interval");
     static readonly SharpFifth = new ChordModification(Interval.MinorSecond, "sharp fifth", "♯5", "3:add-interval");
     static readonly NoFifth = new ChordModification(Interval.PerfectFifth, "no fifth", "no5", "3:remove-note");
-    static readonly AddSixth = new ChordModification(Interval.MajorSixth, "added sixth", "6", "1:new-note");
+    static readonly AddSixth = new ChordModification(Interval.MajorSixth, "added sixth", "add6", "1:new-note");
     static readonly AddedFlatNinth = new ChordModification(Interval.MinorSecond, "added flat ninth", "♭9", "1:new-note-plus-octave");
     static readonly AddedNinth = new ChordModification(Interval.MajorSecond, "added ninth", "add9", "1:new-note-plus-octave");
     static readonly AddedFlatEleventh = new ChordModification(Interval.MajorThird, "added flat eleventh", "♭11", "1:new-note-plus-octave");
@@ -99,40 +99,46 @@ export class ChordModification {
     ];
 }
 
+export class ChordShape {
+    name: string;
+    notation: string = "";
+    intervals: Interval[];
+
+    constructor(name: string, intervals: Interval[], notation: string = "") {
+        this.name = name;
+        this.intervals = intervals;
+        this.notation = notation;
+    }
+
+    static readonly MajorTriad = new ChordShape("major", [Interval.MajorThird, Interval.MinorThird]);
+    static readonly MinorTriad = new ChordShape("minor", [Interval.MinorThird, Interval.MajorThird], "-");
+    static readonly DiminishedTriad = new ChordShape("diminished", [Interval.MinorThird, Interval.MinorThird], "°");
+    static readonly AugmentedTriad = new ChordShape("augmented", [Interval.MajorThird, Interval.MajorThird], "+");
+    static readonly SuspendedFourth = new ChordShape("suspended fourth", [Interval.PerfectFourth, Interval.MajorSecond], "sus4");
+    static readonly SuspendedSecond = new ChordShape("suspended second", [Interval.MajorSecond, Interval.PerfectFourth], "sus2");
+    static readonly MajorSeventhChord = new ChordShape("major seventh", [Interval.MajorThird, Interval.MinorThird, Interval.MajorThird], "Δ7");
+    static readonly MinorSeventhChord = new ChordShape("minor seventh", [Interval.MinorThird, Interval.MajorThird, Interval.MinorThird], "-7");
+    static readonly DominantSeventhChord = new ChordShape("dominant seventh", [Interval.MajorThird, Interval.MinorThird, Interval.MinorThird], "7");
+    static readonly DiminishedSeventhChord = new ChordShape("diminished seventh", [Interval.MinorThird, Interval.MinorThird, Interval.MinorThird], "°7");
+    static readonly ChordShapes = [
+        ChordShape.MajorTriad, ChordShape.MinorTriad, ChordShape.DiminishedTriad, ChordShape.AugmentedTriad,
+        ChordShape.SuspendedFourth, ChordShape.SuspendedSecond, ChordShape.MajorSeventhChord,
+        ChordShape.MinorSeventhChord, ChordShape.DominantSeventhChord, ChordShape.DiminishedSeventhChord
+    ];
+}
+
 export class Chord {
-    classification: string;
+    rootNote?: Note;
+    shape: ChordShape;
     intervals: Interval[];
     notes: Note[];
     modifications: ChordModification[] = [];
     bassNote?: Note;
-    rootNote?: Note;
 
-    static readonly MajorTriad = new Chord("major", [Interval.MajorThird, Interval.MinorThird]);
-    static readonly MinorTriad = new Chord("minor", [Interval.MinorThird, Interval.MajorThird]);
-    static readonly DiminishedTriad = new Chord("diminished", [Interval.MinorThird, Interval.MinorThird]);
-    static readonly AugmentedTriad = new Chord("augmented", [Interval.MajorThird, Interval.MajorThird]);
-    static readonly SuspendedFourth = new Chord("suspended fourth", [Interval.PerfectFourth, Interval.MajorSecond]);
-    static readonly SuspendedSecond = new Chord("suspended second", [Interval.MajorSecond, Interval.PerfectFourth]);
-    static readonly MajorSeventhChord = new Chord("major seventh", [Interval.MajorThird, Interval.MinorThird, Interval.MajorThird]);
-    static readonly MinorSeventhChord = new Chord("minor seventh", [Interval.MinorThird, Interval.MajorThird, Interval.MinorThird]);
-    static readonly DominantSeventhChord = new Chord("dominant seventh", [Interval.MajorThird, Interval.MinorThird, Interval.MinorThird]);
-    static readonly DiminishedSeventhChord = new Chord("diminished seventh", [Interval.MinorThird, Interval.MinorThird, Interval.MinorThird]);
-    static readonly Chords = [
-        Chord.MajorTriad,
-        Chord.MinorTriad,
-        Chord.DiminishedTriad,
-        Chord.AugmentedTriad,
-        Chord.SuspendedFourth,
-        Chord.SuspendedSecond,
-        Chord.MajorSeventhChord,
-        Chord.MinorSeventhChord,
-        Chord.DominantSeventhChord,
-        Chord.DiminishedSeventhChord
-    ];
-
-    constructor(classification: string, intervals: Interval[], notes: Note[] = []) {
-        this.classification = classification;
-        this.intervals = intervals;
+    constructor(rootNote: Note, shape: ChordShape, notes: Note[] = []) {
+        this.rootNote = rootNote;
+        this.shape = shape;
+        this.intervals = shape.intervals;
         this.notes = notes;
     }
 
@@ -142,8 +148,27 @@ export class Chord {
             this.notes.length > 0 ? (this.notes[0].displayName || this.notes[0].name) : 
             undefined;
         // console.log("Chord rootName:", rootName);
-        const name = rootName !== undefined ? rootName + " " + this.classification : this.classification;
+        const name = rootName !== undefined ? rootName + " " + this.shape.name : this.shape.name;
         return name;
+    }
+
+    get notation(): string {
+        let notations = [];
+        const rootName = this.rootNote ? (this.rootNote.displayName || this.rootNote.name) : 
+            this.notes.length > 0 ? (this.notes[0].displayName || this.notes[0].name) : 
+            undefined;
+        notations.push(rootName);
+        // inversion first
+        if (this.bassNote && (this.bassNote.name !== this.rootNote?.name)) {
+            notations.push("/" + (this.bassNote ? (this.bassNote.displayName || this.bassNote.name) : ""));
+        }
+        // then chord shape notation
+        notations.push(this.shape.notation);
+        // then other modifications
+        for (let mod of this.modifications.filter(m => !m.name.includes("inversion"))) {
+            notations.push(mod.notation);
+        }
+        return notations.join("");
     }
 }
 
@@ -263,26 +288,31 @@ export function buildScaleTriads(root: Note, scale: Scale): Chord[] {
         var secondNote = selectNextNote(scaleNotes[i], firstInterval!);
         var thirdNote = selectNextNote(secondNote, secondInterval!);
         // console.log("triad notes:", scaleNotes[i].name, secondNote.name, thirdNote.name);
-        var chord = classifyChord([firstInterval!, secondInterval!]);
-        chord.notes = [scaleNotes[i], secondNote, thirdNote];
+        var shape = classifyChord([firstInterval!, secondInterval!]);
+        var chord = new Chord(scaleNotes[i], shape);
+        for (let note of [secondNote, thirdNote]) {
+            chord.notes.push(note);
+        }
         chords.push(chord);
     }
 
     return chords;
 }
 
-export function classifyChord(intervals: Interval[]): Chord {
+export function classifyChord(intervals: Interval[]): ChordShape {
     if (intervals.length === 1) {
-        return new Chord(intervals[0].name, intervals);
+        return new ChordShape(intervals[0].name, intervals);
     }
 
-    for (const chord of Chord.Chords) {
-        if (chord.intervals[0] === intervals[0] && chord.intervals[1] === intervals[1]) {
-            return new Chord(chord.classification, chord.intervals);
+    for (const shape of ChordShape.ChordShapes) {
+        if (shape.intervals[0] === intervals[0] && 
+            shape.intervals[1] === intervals[1] && 
+            (intervals.length < 3 || shape.intervals.length < 3 || shape.intervals[2] === intervals[2])) {
+            return new ChordShape(shape.name, shape.intervals);
         }
     }
 
-    return new Chord("unclassified chord", intervals);
+    return new ChordShape("unclassified chord", intervals);
 }
 
 export function applyChordModifications(chord: Chord): Chord {
@@ -294,7 +324,7 @@ export function applyChordModifications(chord: Chord): Chord {
 }
 
 export function cloneChord(chord: Chord): Chord {
-    let newChord = new Chord(chord.classification, chord.intervals.slice(), chord.notes.slice());
+    let newChord = new Chord(chord.rootNote!, chord.shape, chord.notes.slice());
     newChord.modifications = chord.modifications.slice();
     newChord.bassNote = chord.bassNote;
     newChord.rootNote = chord.rootNote;
