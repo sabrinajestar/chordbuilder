@@ -9,7 +9,12 @@
       </v-row>
       <v-row>
         <v-col cols="7">
-          <Keyboard :scaleNotes="keyNotes" :chordNotes="chordNotes"></Keyboard>
+          <v-row>
+            <Keyboard :scaleNotes="keyNotes" :chordNotes="chordNotes"></Keyboard>
+          </v-row>
+          <v-row>
+            <ChordProgressionView :progression="chordProgression"></ChordProgressionView>
+          </v-row>
         </v-col>
         <v-col cols="5">
           <v-row>
@@ -18,14 +23,12 @@
           <v-row>
             <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
           </v-row>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col cols="6">
-          <ChordProgressionView :progression="chordProgression"></ChordProgressionView>
-        </v-col>
-        <v-col cols="6">
-          <ChordBuilder @select-chord="handleChordSelection" :scaleNotes="keyNotes" @add-step-to-progression="handleAddStepToProgression"></ChordBuilder>
+          <v-row>
+            <v-divider :thickness="4" ></v-divider>
+          </v-row>
+          <v-row>
+            <ChordBuilder @select-chord="handleChordSelection" :scaleNotes="keyNotes" @add-step-to-progression="handleAddStepToProgression"></ChordBuilder>
+          </v-row>
         </v-col>
       </v-row>
     </v-container>
