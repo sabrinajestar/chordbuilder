@@ -28,6 +28,7 @@ export default {
       // eslint-disable-next-line no-console
       console.log('Selected chord:', JSON.parse(JSON.stringify(chord)));
     }
+  }
   // },
   // mounted() {
   //   this.selectChord(Chord.Major);
