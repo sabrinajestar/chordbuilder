@@ -1,22 +1,24 @@
 export class Note {
     name: string;
-    displayName?: string;
-    altDisplayName?: string;
+    sharpName?: string;
+    flatName?: string;
     index: number;
     octaveIndex: number;
+    useFlatNames: boolean = false;
+    useSharpNames: boolean = false;
 
-    static readonly C = new Note("C", 0);
+    static readonly C = new Note("C", 0, 3, "B♯", "C");
     static readonly CSHARP = new Note("C#", 1, 3, "C♯", "D♭");
     static readonly D = new Note("D", 2);
     static readonly DSHARP = new Note("D#", 3, 3, "D♯", "E♭");
-    static readonly E = new Note("E", 4);
-    static readonly F = new Note("F", 5);
+    static readonly E = new Note("E", 4, 3, "E", "F♭");
+    static readonly F = new Note("F", 5, 3, "E♯", "F");
     static readonly FSHARP = new Note("F#", 6, 3, "F♯", "G♭");
     static readonly G = new Note("G", 7);
     static readonly GSHARP = new Note("G#", 8, 3, "G♯", "A♭");
     static readonly A = new Note("A", 9);
     static readonly ASHARP = new Note("A#", 10, 3, "A♯", "B♭");
-    static readonly B = new Note("B", 11);
+    static readonly B = new Note("B", 11, 3, "B", "C♭");
     static readonly NullNote = new Note("", -1);
     static readonly Notes = [
         Note.C, Note.CSHARP, Note.D, Note.DSHARP,
@@ -24,12 +26,18 @@ export class Note {
         Note.GSHARP, Note.A, Note.ASHARP, Note.B
     ];
 
-    constructor(name: string, index: number, octaveIndex: number = 3, displayName?: string, altDisplayName?: string) {
+    constructor(name: string, index: number, octaveIndex: number = 3, sharpName?: string, flatName?: string, useSharpNames: boolean = false, useFlatNames: boolean = false) {
         this.name = name;
         this.index = index;
         this.octaveIndex = octaveIndex;
-        this.displayName = displayName;
-        this.altDisplayName = altDisplayName;
+        this.sharpName = sharpName;
+        this.flatName = flatName;
+    }
+
+    get scaleName(): string {
+        return this.useFlatNames && this.flatName ? this.flatName : 
+            this.useSharpNames && this.sharpName ? this.sharpName : 
+            this.name;
     }
 }
 
@@ -144,8 +152,8 @@ export class Chord {
 
     get name(): string {
         // console.log("Getting chord name for:", this);
-        const rootName = this.rootNote ? (this.rootNote.displayName || this.rootNote.name) : 
-            this.notes.length > 0 ? (this.notes[0].displayName || this.notes[0].name) : 
+        const rootName = this.rootNote ? (this.rootNote.scaleName) : 
+            this.notes.length > 0 ? (this.notes[0].scaleName) : 
             undefined;
         // console.log("Chord rootName:", rootName);
         const name = rootName !== undefined ? rootName + " " + this.shape.name : this.shape.name;
@@ -154,13 +162,13 @@ export class Chord {
 
     get notation(): string {
         let notations = [];
-        const rootName = this.rootNote ? (this.rootNote.displayName || this.rootNote.name) : 
-            this.notes.length > 0 ? (this.notes[0].displayName || this.notes[0].name) : 
+        const rootName = this.rootNote ? (this.rootNote.scaleName) : 
+            this.notes.length > 0 ? (this.notes[0].scaleName) : 
             undefined;
         notations.push(rootName);
         // inversion first
         if (this.bassNote && (this.bassNote.name !== this.rootNote?.name)) {
-            notations.push("/" + (this.bassNote ? (this.bassNote.displayName || this.bassNote.name) : ""));
+            notations.push("/" + (this.bassNote ? (this.bassNote.scaleName) : ""));
         }
         // then chord shape notation
         notations.push(this.shape.notation);
@@ -217,6 +225,55 @@ export class Scale {
     }
 }
 
+class KeySignature {
+    root: Note;
+    scale: Scale;
+    useSharpNames: boolean = false;
+    useFlatNames: boolean = false;
+
+    constructor(root: Note, scale: Scale, useSharpNames: boolean = false, useFlatNames: boolean = false) {
+        this.root = root;
+        this.scale = scale;
+        this.useFlatNames = useFlatNames;
+        this.useSharpNames = useSharpNames;
+    }
+
+    static readonly C_Major = new KeySignature(Note.C, Scale.Major, false, false);
+    static readonly A_Minor = new KeySignature(Note.A, Scale.NaturalMinor, false, false);
+    static readonly G_Major = new KeySignature(Note.G, Scale.Major, true, false);
+    static readonly E_Minor = new KeySignature(Note.E, Scale.NaturalMinor, true, false);
+    static readonly D_Major = new KeySignature(Note.D, Scale.Major, true, false);
+    static readonly B_Minor = new KeySignature(Note.B, Scale.NaturalMinor, true, false);
+    static readonly A_Major = new KeySignature(Note.A, Scale.Major, true, false);
+    static readonly FSHARP_Minor = new KeySignature(Note.FSHARP, Scale.NaturalMinor, true, false);
+    static readonly E_Major = new KeySignature(Note.E, Scale.Major, true, false);
+    static readonly CSHARP_Minor = new KeySignature(Note.CSHARP, Scale.NaturalMinor, true, false);
+    static readonly B_Major = new KeySignature(Note.B, Scale.Major, true, false);
+    static readonly GSHARP_Minor = new KeySignature(Note.GSHARP, Scale.NaturalMinor, true, false);
+    static readonly FSHARP_Major = new KeySignature(Note.FSHARP, Scale.Major, true, false);
+    static readonly DSHARP_Minor = new KeySignature(Note.DSHARP, Scale.NaturalMinor, true, false);
+    static readonly CSHARP_Major = new KeySignature(Note.CSHARP, Scale.Major, true, false);
+    static readonly ASHARP_Minor = new KeySignature(Note.ASHARP, Scale.NaturalMinor, true, false);
+    
+    static readonly F_Major = new KeySignature(Note.F, Scale.Major, false, true);
+    static readonly D_Minor = new KeySignature(Note.D, Scale.NaturalMinor, false, true);
+    static readonly BFLAT_Major = new KeySignature(Note.ASHARP, Scale.Major, false, true);
+    static readonly G_Minor = new KeySignature(Note.G, Scale.NaturalMinor, false, true);
+    static readonly EFLAT_Major = new KeySignature(Note.DSHARP, Scale.Major, false, true);
+    static readonly C_Minor = new KeySignature(Note.C, Scale.NaturalMinor, false, true);
+    static readonly AFLAT_Major = new KeySignature(Note.GSHARP, Scale.Major, false, true);
+    static readonly F_Minor = new KeySignature(Note.F, Scale.NaturalMinor, false, true);
+
+    static readonly KeySignatures = [
+        KeySignature.C_Major, KeySignature.A_Minor, KeySignature.G_Major, KeySignature.E_Minor,
+        KeySignature.D_Major, KeySignature.B_Minor, KeySignature.A_Major, KeySignature.FSHARP_Minor,
+        KeySignature.E_Major, KeySignature.CSHARP_Minor, KeySignature.B_Major, KeySignature.GSHARP_Minor,
+        KeySignature.FSHARP_Major, KeySignature.DSHARP_Minor, KeySignature.CSHARP_Major, KeySignature.ASHARP_Minor,
+        KeySignature.F_Major, KeySignature.D_Minor, KeySignature.BFLAT_Major, KeySignature.G_Minor,
+        KeySignature.EFLAT_Major, KeySignature.C_Minor, KeySignature.AFLAT_Major, KeySignature.F_Minor
+    ];
+}
+
 function selectNextNote(note: Note, interval: Interval): Note {
     var octaveIndex = note.octaveIndex
     var newIndex = note.index + interval.steps
@@ -225,7 +282,8 @@ function selectNextNote(note: Note, interval: Interval): Note {
         octaveIndex += 1;
     }
     const proto = Note.Notes[newIndex];
-    const newNote = new Note(proto.name, proto.index, octaveIndex, proto.displayName, proto.altDisplayName);
+    const newNote = cloneNote(proto);
+    newNote.octaveIndex = octaveIndex;
     return newNote
 }
 
@@ -245,12 +303,27 @@ export function popuplateChordNotes(root: Note, chord: Chord): Note[] {
 
 export function buildScale(root: Note, scale: Scale): Note[] {
     const notes: Note[] = [];
-    notes.push(root);
-    var thisNote = root;
+    let dupeRoot =  cloneNote(root);
+    notes.push(dupeRoot);
+    var thisNote = dupeRoot;
+    var useFlatNames = false;
+    var useSharpNames = false;
+    for (let signature of KeySignature.KeySignatures) {
+        if (signature.root.name === root.name && signature.scale.name === scale.name) {
+            console.log("Using key signature for scale building:", signature.root.name, signature.scale.name, " useFlatNames:", signature.useFlatNames, " useSharpNames:", signature.useSharpNames);
+            useFlatNames = signature.useFlatNames;
+            useSharpNames = signature.useSharpNames;
+        }
+    }
     for (let interval of scale.intervals) {
         var nextNote = selectNextNote(thisNote, interval)
+        console.log("Building scale, current note:", thisNote.name, " next note:", nextNote.name, " interval:", interval.name);
         notes.push(nextNote)
         thisNote = nextNote
+    }
+    for (let note of notes) {
+        note.useFlatNames = useFlatNames;
+        note.useSharpNames = useSharpNames;
     }
 
     return notes;
@@ -323,6 +396,10 @@ export function applyChordModifications(chord: Chord): Chord {
     return modifiedChord;
 }
 
+export function cloneNote(note: Note): Note {
+    return new Note(note.name, note.index, note.octaveIndex, note.sharpName, note.flatName, note.useSharpNames, note.useFlatNames);
+}
+
 export function cloneChord(chord: Chord): Chord {
     let newChord = new Chord(chord.rootNote!, chord.shape, chord.notes.slice());
     newChord.modifications = chord.modifications.slice();
@@ -371,14 +448,16 @@ export function applyChordModification(chord: Chord, modification: ChordModifica
         case "new-note-plus-octave":
             if (chord.notes) {
                 let newNote = selectNextNote(chord.rootNote, modification.interval);
-                newNote = new Note(newNote.name, newNote.index, newNote.octaveIndex + 1);
+                newNote = cloneNote(newNote);
+                newNote.octaveIndex += 1;
                 chord.notes.push(newNote);
             }
             break;
         case "add-octave":
             if (chord.notes && target - 1 < chord.notes.length) {
                 const noteToModify = chord.notes[target - 1];
-                const modifiedNote = new Note(noteToModify.name, noteToModify.index, noteToModify.octaveIndex + 1);
+                const modifiedNote = cloneNote(noteToModify);
+                modifiedNote.octaveIndex += 1;
                 chord.notes[target - 1] = modifiedNote;
             }
             break;
@@ -388,7 +467,8 @@ export function applyChordModification(chord: Chord, modification: ChordModifica
                 console.log("Notes to invert:", notesToInvert);
                 for (let i = 0; i < notesToInvert.length; i++) {
                     chord.notes.shift();
-                    const invertedNote = new Note(notesToInvert[i].name, notesToInvert[i].index, notesToInvert[i].octaveIndex + 1);
+                    const invertedNote = cloneNote(notesToInvert[i]);
+                    invertedNote.octaveIndex += 1;
                     chord.notes.push(invertedNote);
                 }
                 chord.bassNote = chord.notes[0];

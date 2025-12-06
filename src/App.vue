@@ -4,7 +4,7 @@
       <v-row>
         <v-col>
           <div>current Key & Scale: {{ currentKey && currentScale ? (currentKey.displayName || currentKey.name) + ' ' + currentScale.name : 'No key or scale selected' }}</div>
-          <div>scale Triads: {{ keyChords ? keyChords.map(chord => chord.name).join(', ') : 'No triads available' }}</div>
+          <div>scale Triads: {{ keyChords ? keyChords.map(chord => chord.notation).join(', ') : 'No triads available' }}</div>
         </v-col>
       </v-row>
       <v-row>
