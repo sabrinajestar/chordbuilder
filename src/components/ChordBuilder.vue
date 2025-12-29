@@ -4,11 +4,17 @@
     <div>
       <v-container>
         <v-row>
-          <div>{{ currentChord ? currentChord.notation : 'Choose Chord Root and Shape' }}</div>
+          <div>{{ currentChord ? currentChord.notation : 'Choose Chord Root, Shape, and number of beats' }}</div>
         </v-row>
         <v-row>
           <div class="button" @click="resetSelections">Reset Chord</div>
           <div class="button" @click="addToProgression">Add to Chord Progression</div>
+        </v-row>
+        <v-row>
+          <div class="beatsSelect" @click="currentBeats = i"
+            :class="{ 'currentBeats': currentBeats === i }"
+            v-for="i in 4" :key="i">{{ i }} beats
+          </div>
         </v-row>
         <v-row>
           <div>Select Chord Root</div>
@@ -54,6 +60,7 @@ export default {
       currentRoot: null,
       currentShape: null,
       currentChord: null,
+      currentBeats: 4,
       chordNotes: null
     };
   },
@@ -120,13 +127,14 @@ export default {
       this.currentShape = null;
       this.currentChord = null;
       this.chordNotes = null;
+      this.currentBeats = 4;
       this.$emit('select-chord', null);
       // console.log('Selections have been reset.');
     },
     addToProgression() {
       if (this.currentChord) {
         const dupeChord = cloneChord(this.currentChord);
-        const step = new Step(4, dupeChord); // Assuming 4 beats for now
+        const step = new Step(this.currentBeats, dupeChord); // Assuming 4 beats for now
         this.resetSelections();
         this.$emit('add-step-to-progression', step);
         // console.log('Added chord to progression:', JSON.parse(JSON.stringify(step)));
@@ -154,7 +162,7 @@ a {
 #chordbuilder{
   text-align: left;
 }
-.rootSelect, .shapeSelect, .chordModsSelect, .button{
+.rootSelect, .shapeSelect, .beatsSelect, .chordModsSelect, .button{
   text-align: center;
   height:30px;
   border: 1px solid black;
@@ -174,7 +182,7 @@ a {
   cursor: not-allowed;
   padding: 0 5px 0 5px;
 }
-.currentRoot, .currentChords, .currentShape{
+.currentRoot, .currentChords, .currentShape, .currentBeats{
   background-color: yellow;
 }
 </style>
