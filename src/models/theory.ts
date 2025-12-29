@@ -414,8 +414,22 @@ export function toggleChordModification(chord: Chord, modification: ChordModific
     if (modIndex >= 0) {
         newChord.modifications.splice(modIndex, 1);
     } else {
+        newChord = removeConflictingMods(newChord, modification);
         newChord.modifications.push(modification);
     }
+    return newChord;
+}
+
+export function removeConflictingMods(newChord: Chord, newMod: ChordModification): Chord {
+    console.log('Removing conflicting modifications for:', JSON.parse(JSON.stringify(newMod)));
+    const conflictingMods = [['♭5', '♯5', 'no5'], ['♭9', 'add9'], ['♭11', 'add11'], ['I/III', 'I/V', 'I/VII']];
+    conflictingMods.forEach(group => {
+        if (group.includes(newMod.notation)) {
+            console.log('Conflicting group found:', JSON.parse(JSON.stringify(group)), "for mod:", JSON.stringify(newMod));
+            newChord.modifications = newChord.modifications.filter(mod => !group.includes(mod.notation));
+        }
+    });
+    console.log('Current chord modifications after removing conflicts:', JSON.parse(JSON.stringify(newChord.modifications)));
     return newChord;
 }
 
