@@ -2,6 +2,9 @@
   <div id="app">
     <v-container>
       <v-row>
+        <v-col cols="2">
+          <TonePlayer :chordNotes="chordNotes"></TonePlayer>
+        </v-col>
         <v-col>
           <div>current Key & Scale: {{ currentKey && currentScale ? (currentKey.displayName || currentKey.name) + ' ' + currentScale.name : 'No key or scale selected' }}</div>
           <div>scale Triads: {{ keyChords ? keyChords.map(chord => chord.notation).join(', ') : 'No triads available' }}</div>
@@ -41,6 +44,7 @@ import KeyPicker from './components/KeyPicker.vue';
 import ScalePicker from './components/ScalePicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
 import ChordProgressionView from './components/ChordProgressionView.vue';
+import TonePlayer from './components/TonePlayer.vue';
 import { buildScale, buildScaleTriads, ChordProgression } from './models/theory';
 
 export default {
@@ -50,7 +54,8 @@ export default {
     KeyPicker,
     ScalePicker,
     ChordBuilder,
-    ChordProgressionView
+    ChordProgressionView,
+    TonePlayer
   },
   data() {
     return {
