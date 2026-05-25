@@ -16,7 +16,10 @@
             <Keyboard :scaleNotes="keyNotes" :chordNotes="chordNotes"></Keyboard>
           </v-row>
           <v-row>
-            <ChordProgressionView :progression="chordProgression"></ChordProgressionView>
+            <ChordProgressionView
+              :progression="chordProgression"
+              @play="playProgression"
+            />
           </v-row>
         </v-col>
         <v-col cols="5">
@@ -30,7 +33,10 @@
             <v-divider :thickness="4" ></v-divider>
           </v-row>
           <v-row>
-            <ChordBuilder @select-chord="handleChordSelection" :scaleNotes="keyNotes" @add-step-to-progression="handleAddStepToProgression"></ChordBuilder>
+            <ChordBuilder @select-chord="handleChordSelection" 
+              :scaleNotes="keyNotes" 
+              @add-step-to-progression="handleAddStepToProgression"
+            />
           </v-row>
         </v-col>
       </v-row>
@@ -64,12 +70,13 @@ export default {
       keyNotes: null,
       keyChords: null,
       chordNotes: null,
-      chordProgression: new ChordProgression()
+      chordProgression: new ChordProgression(),
+      play: null
     };
   },
   methods: {
     handleChordSelection(chord) {
-      // console.log('Selected chord in App:', JSON.parse(JSON.stringify(chord)));
+      console.log('Selected chord in App:', JSON.parse(JSON.stringify(chord)));
       this.chordNotes = chord ? [...chord.notes] : null;
       // console.log('Updated chord notes in App:', JSON.parse(JSON.stringify(this.chordNotes)));
       // Additional logic for handling chord selection can be added here
@@ -102,6 +109,17 @@ export default {
       console.log('Adding step to progression in App:', JSON.parse(JSON.stringify(step)));
       this.chordProgression.steps.push(step);
       console.log('Updated chord progression in App:', JSON.parse(JSON.stringify(this.chordProgression)));
+    },
+    async playProgression() {
+      console.log('In App, play progression');
+      this.chordNotes = null;
+      for (let step of this.chordProgression.steps) {
+        console.log(`Playing chord: ${step.chord.notation} for ${step.beats} beats`);
+        for (let i = 1; i <= step.beats; i++) {
+          this.chordNotes = step.chord.notes;
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
     }
   }
 }

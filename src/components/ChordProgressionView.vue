@@ -15,12 +15,26 @@
           <text v-for="(step, i) in progression.steps" :key="'text-' + step.chord.name" :x="getStepX(i) + (step.beats * 20) / 2" y="30" text-anchor="middle" dominant-baseline="middle" font-size="14">{{ step.chord.notation }}</text>
         </g>
       </svg>
+      <svg width="640" height="100" xmlns="http://www.w3.org/2000/svg">
+        <a @click="play">
+          <polygon points="30,5 30,25 47,15" style="fill:green;stroke:black;stroke-width:1" />
+        </a>
+        <a @click="pause">
+          <rect x="60" y="5" width="10" height="20" fill-opacity="0"/>
+          <rect x="60" y="5" width="3" height="20" style="fill:yellow;" />
+          <rect x="67" y="5" width="3" height="20" style="fill:yellow;" />
+        </a>
+        <a @click="stop">
+          <rect x="85" y="5" width="20" height="20" style="fill:red;stroke:black;stroke-width:1" />
+        </a>
+      </svg>
     </div>
   </div>
 </template>
 
 <script>
 import { ChordProgression } from '../models/theory.ts';
+// import { setTimeout as delay } from 'timers/promises';
 
 export default {
   name: 'ChordProgressionView',
@@ -34,7 +48,11 @@ export default {
         x += this.progression.steps[i].beats * 20;
       }
       return x;
-    }
+    },
+    play() {
+      console.log('Emit play event');
+      this.$emit('play');
+    },
   }
 }
 </script>
@@ -52,7 +70,7 @@ li {
   margin: 0 10px;
 }
 a {
-  color: #42b983;
+  cursor: pointer;
 }
 #keypicker{
   text-align: left;
