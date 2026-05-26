@@ -7,7 +7,7 @@
         </v-col>
         <v-col>
           <div>current Key & Scale: {{ currentKey && currentScale ? (currentKey.displayName || currentKey.name) + ' ' + currentScale.name : 'No key or scale selected' }}</div>
-          <div>scale Triads: {{ keyChords ? keyChords.map(chord => chord.notation).join(', ') : 'No triads available' }}</div>
+          <div>scale Sevenths: {{ keyChords ? keyChords.map(chord => chord.notation).join(', ') : 'No triads available' }}</div>
         </v-col>
       </v-row>
       <v-row>
@@ -51,7 +51,7 @@ import ScalePicker from './components/ScalePicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
 import ChordProgressionView from './components/ChordProgressionView.vue';
 import TonePlayer from './components/TonePlayer.vue';
-import { buildScale, buildScaleTriads, ChordProgression } from './models/theory';
+import { buildScale, buildScaleSevenths, ChordProgression } from './models/theory';
 
 export default {
   name: 'App',
@@ -101,7 +101,9 @@ export default {
       // console.log('Building scale and triads with key:', this.currentKey, 'and scale:', this.currentScale);
       if (this.currentKey && this.currentScale) {
         this.keyNotes = buildScale(this.currentKey, this.currentScale);
-        this.keyChords = buildScaleTriads(this.currentKey, this.currentScale);
+        // this.keyChords = buildScaleTriads(this.currentKey, this.currentScale);
+        this.keyChords = buildScaleSevenths(this.currentKey, this.currentScale);
+        console.log('Built scale notes:', JSON.parse(JSON.stringify(this.keyNotes)));
         // console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyChords)));
       }
     },
@@ -114,7 +116,7 @@ export default {
       console.log('In App, play progression');
       this.chordNotes = null;
       for (let step of this.chordProgression.steps) {
-        console.log(`Playing chord: ${step.chord.notation} for ${step.beats} beats`);
+        console.log(`Playing chord: ${step.chord.romanNumeral(this.keyNotes)} for ${step.beats} beats`);
         for (let i = 1; i <= step.beats; i++) {
           this.chordNotes = step.chord.notes;
           await new Promise(resolve => setTimeout(resolve, 500));

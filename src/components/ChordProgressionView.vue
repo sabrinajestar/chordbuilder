@@ -11,7 +11,7 @@
           <line v-for="i in 8" :key="i" :x1="i * 80" y1="50" y2="100" :x2="i * 80" style="stroke:black;stroke-width:2" />
         </g>
         <g>
-          <rect v-for="(step, i) in progression.steps" :key="step.chord.name" :x="getStepX(i)" y="0" :width="step.beats * 20" height="50" fill="none" stroke="gray" stroke-width="1" />
+          <rect v-for="(step, i) in progression.steps" :key="step.chord.romanNumeral" :x="getStepX(i)" y="0" :width="step.beats * 20" height="50" fill="none" stroke="gray" stroke-width="1" />
           <text v-for="(step, i) in progression.steps" :key="'text-' + step.chord.name" :x="getStepX(i) + (step.beats * 20) / 2" y="30" text-anchor="middle" dominant-baseline="middle" font-size="14">{{ step.chord.notation }}</text>
         </g>
       </svg>

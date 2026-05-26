@@ -127,11 +127,13 @@ export class ChordShape {
     static readonly MajorSeventhChord = new ChordShape("major seventh", [Interval.MajorThird, Interval.MinorThird, Interval.MajorThird], "Δ7");
     static readonly MinorSeventhChord = new ChordShape("minor seventh", [Interval.MinorThird, Interval.MajorThird, Interval.MinorThird], "-7");
     static readonly DominantSeventhChord = new ChordShape("dominant seventh", [Interval.MajorThird, Interval.MinorThird, Interval.MinorThird], "7");
+    static readonly HalfDiminishedSeventhChord = new ChordShape("half-diminished seventh", [Interval.MinorThird, Interval.MinorThird, Interval.MajorThird], "ø7");
     static readonly DiminishedSeventhChord = new ChordShape("diminished seventh", [Interval.MinorThird, Interval.MinorThird, Interval.MinorThird], "°7");
     static readonly ChordShapes = [
         ChordShape.MajorTriad, ChordShape.MinorTriad, ChordShape.DiminishedTriad, ChordShape.AugmentedTriad,
         ChordShape.SuspendedFourth, ChordShape.SuspendedSecond, ChordShape.MajorSeventhChord,
-        ChordShape.MinorSeventhChord, ChordShape.DominantSeventhChord, ChordShape.DiminishedSeventhChord
+        ChordShape.MinorSeventhChord, ChordShape.DominantSeventhChord, ChordShape.HalfDiminishedSeventhChord,
+        ChordShape.DiminishedSeventhChord
     ];
 }
 
@@ -170,6 +172,25 @@ export class Chord {
         if (this.bassNote && (this.bassNote.name !== this.rootNote?.name)) {
             notations.push("/" + (this.bassNote ? (this.bassNote.scaleName) : ""));
         }
+        // then chord shape notation
+        notations.push(this.shape.notation);
+        // then other modifications
+        for (let mod of this.modifications.filter(m => !m.name.includes("inversion"))) {
+            notations.push(mod.notation);
+        }
+        return notations.join("");
+    }
+
+    romanNumeral(scaleNotes: Note[]): string {
+        let notations = [];
+        const rootName = this.rootNote ? (this.rootNote.scaleName) : 
+            this.notes.length > 0 ? (this.notes[0].scaleName) : 
+            undefined;
+        notations.push(getRomanNumeral(rootName, scaleNotes));
+        // // inversion first
+        // if (this.bassNote && (this.bassNote.name !== this.rootNote?.name)) {
+        //     notations.push("/" + (this.bassNote ? (this.bassNote.scaleName) : ""));
+        // }
         // then chord shape notation
         notations.push(this.shape.notation);
         // then other modifications
@@ -372,6 +393,49 @@ export function buildScaleTriads(root: Note, scale: Scale): Chord[] {
     return chords;
 }
 
+export function buildScaleSevenths(root: Note, scale: Scale): Chord[] {
+    const scaleNotes = buildScale(root, scale);
+    const chords: Chord[] = [];
+
+    console.log("Building scale sevenths for root:", root.name, " scale:", scale.name, " scaleNotes:", scaleNotes.map(note => note.name));
+    console.log("Scale intervals:", scale.intervals.map(interval => interval.name));
+    for (let i = 0; i < scaleNotes.length - 1; i++) {
+        var nextScaleIntervals = [
+            scale.intervals[i % scale.intervals.length], 
+            scale.intervals[(i + 1) % scale.intervals.length], 
+            scale.intervals[(i + 2) % scale.intervals.length], 
+            scale.intervals[(i + 3) % scale.intervals.length],
+            scale.intervals[(i + 4) % scale.intervals.length],
+            scale.intervals[(i + 5) % scale.intervals.length]
+        ];
+        console.log("nextScaleIntervals:", nextScaleIntervals.map(interval => interval.name));
+        var firstSteps = (nextScaleIntervals[0].steps + nextScaleIntervals[1].steps);
+        var secondSteps = (nextScaleIntervals[2].steps + nextScaleIntervals[3].steps);
+        var thirdSteps = (nextScaleIntervals[4].steps + nextScaleIntervals[5].steps);
+        console.log("firstSteps:", firstSteps, "secondSteps:", secondSteps, "thirdSteps:", thirdSteps);
+
+        var firstInterval = selectIntervalBySteps(firstSteps % scale.intervals.length);
+        var secondInterval = selectIntervalBySteps(secondSteps % scale.intervals.length);
+        var thirdInterval = selectIntervalBySteps(thirdSteps % scale.intervals.length);
+        console.log("firstInterval:", firstInterval?.name, "secondInterval:", secondInterval?.name, "thirdInterval:", thirdInterval?.name);
+
+        var secondNote = selectNextNote(scaleNotes[i], firstInterval!);
+        var thirdNote = selectNextNote(secondNote, secondInterval!);
+        var fourthNote = selectNextNote(thirdNote, thirdInterval!);
+        console.log("seventh chord notes:", scaleNotes[i].name, secondNote.name, thirdNote.name, fourthNote.name);
+        var shape = classifyChord([firstInterval!, secondInterval!, thirdInterval!]);
+        var chord = new Chord(scaleNotes[i], shape);
+        console.log("Classified chord shape:", shape.name, " for chord:", chord);
+        for (let note of [secondNote, thirdNote, fourthNote]) {
+            chord.notes.push(note);
+        }
+        console.log("Built chord:", chord.notation);
+        chords.push(chord);
+    }
+
+    return chords;
+}
+
 export function classifyChord(intervals: Interval[]): ChordShape {
     if (intervals.length === 1) {
         return new ChordShape(intervals[0].name, intervals);
@@ -380,8 +444,8 @@ export function classifyChord(intervals: Interval[]): ChordShape {
     for (const shape of ChordShape.ChordShapes) {
         if (shape.intervals[0] === intervals[0] && 
             shape.intervals[1] === intervals[1] && 
-            (intervals.length < 3 || shape.intervals.length < 3 || shape.intervals[2] === intervals[2])) {
-            return new ChordShape(shape.name, shape.intervals);
+            (intervals.length < 3 || (shape.intervals.length >= 3 && shape.intervals[2] === intervals[2]))) {
+            return new ChordShape(shape.name, shape.intervals, shape.notation);
         }
     }
 
@@ -493,4 +557,38 @@ export function applyChordModification(chord: Chord, modification: ChordModifica
     }
 
     return chord;
+}
+
+export function getRomanNumeral(rootName: string | undefined, scaleNotes: Note[]): string {
+    const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
+    if (!rootName) {
+        return "";
+    }
+    const rootIndex = scaleNotes.findIndex(note => note.name === rootName || note.sharpName === rootName || note.flatName === rootName);
+    if (rootIndex === -1) {
+        return getRomanNumeralChromatic(rootName, scaleNotes);
+    }
+    return romanNumerals[rootIndex % romanNumerals.length];
+}
+
+export function getRomanNumeralChromatic(rootName: string, scaleNotes: Note[]): string {
+    const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
+    // cycle through chromatic notes to find the root note and determine its position relative to the scale notes
+    const rootIndex = Note.Notes.findIndex(note => note.name === rootName || note.sharpName === rootName || note.flatName === rootName);
+    if (rootIndex === -1) {
+        return "";
+    }
+    const scaleNoteIndices = scaleNotes.map(scaleNote => Note.Notes.findIndex(note => note.name === scaleNote.name || note.sharpName === scaleNote.name || note.flatName === scaleNote.name));
+    let closestScaleNoteIndex = -1;
+    let minDistance = Number.MAX_VALUE;
+    for (let i = 0; i < scaleNoteIndices.length; i++) {
+        const distance = scaleNoteIndices[i] - rootIndex;
+        if (distance > 0 && distance < minDistance) {
+            minDistance = distance;
+            closestScaleNoteIndex = i;
+        }
+    }
+    const closestScaleNote = scaleNotes[closestScaleNoteIndex];
+    const accidental = rootIndex < Note.Notes.findIndex(note => note.name === closestScaleNote.name || note.sharpName === closestScaleNote.name || note.flatName === closestScaleNote.name) ? "♭" : "♯";
+    return accidental + romanNumerals[closestScaleNoteIndex % romanNumerals.length];
 }
