@@ -18,6 +18,7 @@
           <v-row>
             <ChordProgressionView
               :progression="chordProgression"
+              :keyNotes="keyNotes"
               @play="playProgression"
             />
           </v-row>

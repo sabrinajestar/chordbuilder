@@ -1,3 +1,5 @@
+const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
+
 export class Note {
     name: string;
     sharpName?: string;
@@ -560,7 +562,6 @@ export function applyChordModification(chord: Chord, modification: ChordModifica
 }
 
 export function getRomanNumeral(rootName: string | undefined, scaleNotes: Note[]): string {
-    const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
     if (!rootName) {
         return "";
     }
@@ -572,7 +573,6 @@ export function getRomanNumeral(rootName: string | undefined, scaleNotes: Note[]
 }
 
 export function getRomanNumeralChromatic(rootName: string, scaleNotes: Note[]): string {
-    const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
     // cycle through chromatic notes to find the root note and determine its position relative to the scale notes
     const rootIndex = Note.Notes.findIndex(note => note.name === rootName || note.sharpName === rootName || note.flatName === rootName);
     if (rootIndex === -1) {
@@ -592,3 +592,78 @@ export function getRomanNumeralChromatic(rootName: string, scaleNotes: Note[]): 
     const accidental = rootIndex < Note.Notes.findIndex(note => note.name === closestScaleNote.name || note.sharpName === closestScaleNote.name || note.flatName === closestScaleNote.name) ? "♭" : "♯";
     return accidental + romanNumerals[closestScaleNoteIndex % romanNumerals.length];
 }
+
+export function analyzeChordDiatonicity(chord: Chord, keyNotes: Note[]): string {
+    if (!chord.rootNote) {
+        return "unknown";
+    }
+    const rootIndex = keyNotes.findIndex(note => note.name === chord.rootNote!.name || note.sharpName === chord.rootNote!.name || note.flatName === chord.rootNote!.name);
+    if (rootIndex === -1) {
+        return "chromatic";
+    } else {
+        return "diatonic";
+    }
+}
+
+export function analyzeChordFunction(chord: Chord, keyNotes: Note[]): string {
+    const romanNumeral = getRomanNumeral(chord.rootNote.name, keyNotes);
+    if (romanNumeral === "") {
+        return "chromatic";
+    }
+    if (romanNumeral === "I" || romanNumeral === "III" || romanNumeral === "VI") {
+        return "tonic";
+    } else if (romanNumeral === "II" || romanNumeral === "IV") {
+        return "subdominant";
+    } else if (romanNumeral === "V" || romanNumeral === "VII") {
+        return "dominant";
+    } else {
+        return "chromatic";
+    }
+}
+
+export function analyzeChordFunctionByRoman(chord: Chord, keyNotes: Note[]): string {
+    const romanNumeral = getRomanNumeral(chord.rootNote.name, keyNotes);
+    if (romanNumeral === "") {
+        return "chromatic";
+    }
+    if (romanNumeral === "I" || romanNumeral === "III" || romanNumeral === "VI") {
+        return "tonic";
+    } else if (romanNumeral === "II" || romanNumeral === "IV") {
+        return "subdominant";
+    } else if (romanNumeral === "V" || romanNumeral === "VII") {
+        return "dominant";
+    } else {
+        return "chromatic";
+    }
+}
+
+export function fillBasedOnChordFunction(chord: Chord, keyNotes: Note[]): string {
+    const functionType = analyzeChordFunctionByRoman(chord, keyNotes);
+    console.log("Filling based on chord function:", chord.rootNote.name, " function type:", functionType);
+    if (functionType === "tonic") {
+        return "palegreen";
+    } else if (functionType === "subdominant") {
+        return "lightyellow";
+    } else if (functionType === "dominant") {
+        return "lightcoral";
+    } else if (functionType === "chromatic") {
+        return "plum";
+    } else {
+        return "gray";
+    }
+}
+
+// export function analyzeChordTension(chord: Chord, keyNotes: Note[]): string {
+//     const functionType = analyzeChordFunction(chord, keyNotes);
+//     if (functionType === "chromatic") {
+//         return "high tension";
+//     } else if (functionType === "tonic") {
+//         return "low tension";
+//     } else if (functionType === "subdominant") {
+//         return "medium tension";
+//     } else if (functionType === "dominant") {
+//         return "high tension";
+//     } else {
+//         return "unknown tension";
+//     }
+// }
