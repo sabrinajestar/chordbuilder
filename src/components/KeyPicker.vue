@@ -1,12 +1,11 @@
 <template>
   <div id="keypicker">
-    <p>Select a Key</p>
-    <div>
-      <div class="keytonics"
-      :class="{ 'currentTonic': currentTonic && note.index === currentTonic.index }" 
-      @click="selectKey(note)"
-      v-for="note in notes" :key="note.index">{{ note.displayName || note.name }}</div>
-    </div>
+    Select a Key:
+    <select class="app-select" id="key-select" @change="selectKey(notes[$event.target.selectedIndex])">
+      <option v-for="note in notes" :key="note.index" :value="note.index" :selected="note.index === 0">
+        {{ note.displayName || note.name }}
+      </option>
+    </select>
   </div>
 </template>
 

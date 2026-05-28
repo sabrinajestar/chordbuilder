@@ -7,7 +7,9 @@
         </v-col>
         <v-col>
           <div>current Key & Scale: {{ currentKey && currentScale ? (currentKey.displayName || currentKey.name) + ' ' + currentScale.name : 'No key or scale selected' }}</div>
-          <div>scale Sevenths: {{ keyChords ? keyChords.map(chord => chord.notation).join(', ') : 'No triads available' }}</div>
+          <div>tonic chords for scale: {{ keyChords ? keyChords.filter(chord => this.analyzeChordFunctionByRoman(chord, keyNotes) === 'tonic').map(chord => chord.notation + "(" + chord.romanNumeral(this.keyNotes) + ")").join(', ') : 'No tonic chords available' }}</div>
+          <div>subdominant chords for scale: {{ keyChords ? keyChords.filter(chord => this.analyzeChordFunctionByRoman(chord, keyNotes) === 'subdominant').map(chord => chord.notation + "(" + chord.romanNumeral(this.keyNotes) + ")").join(', ') : 'No subdominant chords available' }}</div>
+          <div>dominant chords for scale: {{ keyChords ? keyChords.filter(chord => this.analyzeChordFunctionByRoman(chord, keyNotes) === 'dominant').map(chord => chord.notation + "(" + chord.romanNumeral(this.keyNotes) + ")").join(', ') : 'No dominant chords available' }}</div>
         </v-col>
       </v-row>
       <v-row>
@@ -25,10 +27,12 @@
         </v-col>
         <v-col cols="5">
           <v-row>
-            <KeyPicker @select-key="handleKeySelection"></KeyPicker>
-          </v-row>
-          <v-row>
-            <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
+            <v-col cols="5">
+              <KeyPicker @select-key="handleKeySelection"></KeyPicker>
+            </v-col>
+            <v-col cols="7">
+              <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
+            </v-col>
           </v-row>
           <v-row>
             <v-divider :thickness="4" ></v-divider>
@@ -52,7 +56,7 @@ import ScalePicker from './components/ScalePicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
 import ChordProgressionView from './components/ChordProgressionView.vue';
 import TonePlayer from './components/TonePlayer.vue';
-import { buildScale, buildScaleSevenths, ChordProgression } from './models/theory';
+import { buildScale, buildScaleSevenths, ChordProgression, analyzeChordFunctionByRoman as theoryAnalyzeChordFunctionByRoman} from './models/theory';
 
 export default {
   name: 'App',
@@ -113,6 +117,9 @@ export default {
       this.chordProgression.steps.push(step);
       console.log('Updated chord progression in App:', JSON.parse(JSON.stringify(this.chordProgression)));
     },
+    analyzeChordFunctionByRoman(chord, keyNotes) {
+      return theoryAnalyzeChordFunctionByRoman(chord, keyNotes);
+    },
     async playProgression() {
       console.log('In App, play progression');
       this.chordNotes = null;
@@ -136,5 +143,10 @@ export default {
   text-align: center;
   color: #2c3e50;
   background-color: lightblue;
+}
+.app-select {
+  -webkit-appearance: listbox;
+  border: 1px solid black;
+  border-radius: 4px;
 }
 </style>

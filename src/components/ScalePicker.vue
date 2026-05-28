@@ -1,11 +1,11 @@
 <template>
   <div id="scalepicker">
-    <p>Select a Scale</p>
-    <div>
-      <div class="scaleSelected" @click="selectScale(scale)"
-      :class="{ 'currentScale': currentScale && scale.name === currentScale.name }"
-       v-for="scale in scales" :key="scale.name">{{ scale.name }}</div>
-    </div>
+    Select a Scale:
+    <select class="app-select" id="scale-select" @change="selectScale(scales[$event.target.selectedIndex])">
+      <option v-for="scale in scales" :key="scale.index" :value="scale.index" :selected="scale.index === 0">
+        {{ scale.displayName || scale.name }}
+      </option>
+    </select>
   </div>
 </template>
 

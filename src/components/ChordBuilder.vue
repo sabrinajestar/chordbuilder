@@ -9,30 +9,34 @@
         <v-row>
           <div class="button" @click="resetSelections">Reset Chord</div>
           <div class="button" @click="addToProgression">Add to Chord Progression</div>
-        </v-row>
-        <v-row>
-          <div class="beatsSelect" @click="currentBeats = i"
+          Beats:
+          <select :key="`beats-${selectRenderKey}`" class="app-select" id="beats-select" v-model.number="currentBeats">
+            <option v-for="i in 8" :key="i" :value="i" :selected="currentBeats === i">{{ i }}</option>
+          </select>
+          <!-- <div class="beatsSelect" @click="currentBeats = i"
             :class="{ 'currentBeats': currentBeats === i }"
             v-for="i in 4" :key="i">{{ i }} beats
-          </div>
+          </div> -->
         </v-row>
         <v-row>
-          <div>Select Chord Root</div>
-        </v-row>
-        <v-row>
-          <div class="rootSelect" @click="selectChordRoot(note)"
-          :class="{ 'currentRoot': currentRoot && note.name === currentRoot.name }"
-          v-for="note in notes" :key="note.name">{{ note.displayName || note.name }}
-          </div>
-        </v-row>
-        <v-row>
-          <div>Select Chord Shape</div>
-        </v-row>
-        <v-row>
-          <div class="shapeSelect" @click="selectShape(shape)"
-          :class="{ 'currentShape': currentShape && shape.name === currentShape.name }"
-          v-for="shape in shapes" :key="shape.name">{{ shape.name }}
-          </div>
+          <v-col cols="4">
+            Select Chord Root
+            <select :key="`root-${selectRenderKey}`" class="app-select" id="chord-root-select" v-model="selectedRootIndex" @change="handleChordRootChange">
+              <option value="">Choose root</option>
+              <option v-for="note in notes" :key="note.index" :value="String(note.index)">
+                {{ note.displayName || note.name }}
+              </option>
+            </select>
+          </v-col>
+          <v-col cols="8">
+            Select Chord Shape
+            <select :key="`shape-${selectRenderKey}`" class="app-select" id="chord-shape-select" v-model="selectedShapeName" @change="handleShapeChange">
+              <option value="">Choose shape</option>
+              <option v-for="shape in shapes" :key="shape.name" :value="shape.name">
+                {{ shape.name }}
+              </option>
+            </select>
+          </v-col>
         </v-row>
         <v-row>
           <div>Select Chord Modifications</div> {{ currentChord && currentChord.modifications.length > 0 ? '(Current: ' + currentChord.modifications.map(mod => mod.notation).join(', ') + ')' : '' }}
@@ -61,7 +65,10 @@ export default {
       currentShape: null,
       currentChord: null,
       currentBeats: 4,
-      chordNotes: null
+      chordNotes: null,
+      selectedRootIndex: '',
+      selectedShapeName: '',
+      selectRenderKey: 0
     };
   },
   computed: {
@@ -75,7 +82,36 @@ export default {
       return ChordModification.ChordMods;
     },
   },
+  mounted() {
+    // Initialize with default selections
+    this.selectChordRoot(this.notes[0]); // C
+    this.selectShape(this.shapes.find(shape => shape.name === 'Major'));
+  },
   methods: {
+    handleChordRootChange() {
+      if (this.selectedRootIndex === '') {
+        this.currentRoot = null;
+        this.currentChord = null;
+        this.$emit('select-chord', null);
+        return;
+      }
+      const selectedNote = this.notes.find(note => String(note.index) === this.selectedRootIndex);
+      if (selectedNote) {
+        this.selectChordRoot(selectedNote);
+      }
+    },
+    handleShapeChange() {
+      if (this.selectedShapeName === '') {
+        this.currentShape = null;
+        this.currentChord = null;
+        this.$emit('select-chord', null);
+        return;
+      }
+      const selectedShape = this.shapes.find(shape => shape.name === this.selectedShapeName);
+      if (selectedShape) {
+        this.selectShape(selectedShape);
+      }
+    },
     setChordModClass(mod) {
       var modClass = 'chordModsSelect';
       if (!this.currentShape || !this.currentRoot) {
@@ -97,12 +133,14 @@ export default {
     },
     selectChordRoot(note) {
       this.currentRoot = note;
+      this.selectedRootIndex = String(note.index);
       // eslint-disable-next-line no-console
       // console.log('Selected chord root:', JSON.parse(JSON.stringify(note)));
       this.setChordNotes();
     },
     selectShape(shape) {
       this.currentShape = shape;
+      this.selectedShapeName = shape.name;
       this.currentChord = new Chord(this.currentRoot, shape);
       // eslint-disable-next-line no-console
       // console.log('Selected base chord:', JSON.parse(JSON.stringify(shape)));
@@ -128,6 +166,9 @@ export default {
       this.currentChord = null;
       this.chordNotes = null;
       this.currentBeats = 4;
+      this.selectedRootIndex = '';
+      this.selectedShapeName = '';
+      this.selectRenderKey += 1;
       this.$emit('select-chord', null);
       // console.log('Selections have been reset.');
     },
