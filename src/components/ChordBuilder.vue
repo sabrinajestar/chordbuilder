@@ -13,10 +13,6 @@
           <select :key="`beats-${selectRenderKey}`" class="app-select" id="beats-select" v-model.number="currentBeats">
             <option v-for="i in 8" :key="i" :value="i" :selected="currentBeats === i">{{ i }}</option>
           </select>
-          <!-- <div class="beatsSelect" @click="currentBeats = i"
-            :class="{ 'currentBeats': currentBeats === i }"
-            v-for="i in 4" :key="i">{{ i }} beats
-          </div> -->
         </v-row>
         <v-row>
           <v-col cols="4">
@@ -85,7 +81,9 @@ export default {
   mounted() {
     // Initialize with default selections
     this.selectChordRoot(this.notes[0]); // C
-    this.selectShape(this.shapes.find(shape => shape.name === 'Major'));
+    this.selectShape(this.shapes[4]); // Major Seventh
+    this.handleChordRootChange();
+    this.handleShapeChange();
   },
   methods: {
     handleChordRootChange() {
