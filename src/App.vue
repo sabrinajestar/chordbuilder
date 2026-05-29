@@ -7,9 +7,12 @@
         </v-col>
         <v-col>
           <div>current Key & Scale: {{ currentKey && currentScale ? (currentKey.displayName || currentKey.name) + ' ' + currentScale.name : 'No key or scale selected' }}</div>
-          <div>tonic chords for scale: {{ keyChords ? keyChords.filter(chord => this.analyzeChordFunctionByRoman(chord, keyNotes) === 'tonic').map(chord => chord.notation + "(" + chord.romanNumeral(this.keyNotes) + ")").join(', ') : 'No tonic chords available' }}</div>
-          <div>subdominant chords for scale: {{ keyChords ? keyChords.filter(chord => this.analyzeChordFunctionByRoman(chord, keyNotes) === 'subdominant').map(chord => chord.notation + "(" + chord.romanNumeral(this.keyNotes) + ")").join(', ') : 'No subdominant chords available' }}</div>
-          <div>dominant chords for scale: {{ keyChords ? keyChords.filter(chord => this.analyzeChordFunctionByRoman(chord, keyNotes) === 'dominant').map(chord => chord.notation + "(" + chord.romanNumeral(this.keyNotes) + ")").join(', ') : 'No dominant chords available' }}</div>
+          <div>tonic chords for scale: {{ keyChords ? keyChords.filter(chord => this.analyzeChordFunctionByRoman(chord, keyNotes) === 'tonic').map(chord => chord.notation + " (" + chord.romanNumeral(this.keyNotes) + ")").join(', ') : 'No tonic chords available' }}</div>
+          <div>subdominant chords for scale: {{ keyChords ? keyChords.filter(chord => this.analyzeChordFunctionByRoman(chord, keyNotes) === 'subdominant').map(chord => chord.notation + " (" + chord.romanNumeral(this.keyNotes) + ")").join(', ') : 'No subdominant chords available' }}</div>
+          <div>dominant chords for scale: {{ keyChords ? keyChords.filter(chord => this.analyzeChordFunctionByRoman(chord, keyNotes) === 'dominant').map(chord => chord.notation + " (" + chord.romanNumeral(this.keyNotes) + ")").join(', ') : 'No dominant chords available' }}</div>
+          <div>secondary dominant cadences for scale: {{ this.secondaryDominants ? this.secondaryDominants.map(secV => secV.relatedIIChord.notation + " -> " + secV.secondaryDominantChord.notation + " (V/" + this.getRomanNumeral(secV.targetChordIndex+1) + ")").join(', ') : 'No secondary dominants available' }}</div>
+          <div>deceptive resolution chords for scale: {{ this.secondaryDominants ? this.secondaryDominants.map(secV => secV.deceptiveResolutionChord.notation + " (VI/" + this.getRomanNumeral(secV.targetChordIndex+1) + ")").join(', ') : 'No deceptive resolution chords available' }}</div>
+          <div>substitute dominant cadences for scale: {{ this.secondaryDominants ? this.secondaryDominants.map(secV => secV.subVRelatedIIChord.notation + " -> "  + secV.substituteDominantChord.notation + " (subV/" + this.getRomanNumeral(secV.targetChordIndex+1) + ")").join(', ') : 'No substitute dominants available' }}</div>
         </v-col>
       </v-row>
       <v-row>
@@ -56,7 +59,9 @@ import ScalePicker from './components/ScalePicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
 import ChordProgressionView from './components/ChordProgressionView.vue';
 import TonePlayer from './components/TonePlayer.vue';
-import { buildScale, buildScaleSevenths, ChordProgression, analyzeChordFunctionByRoman as theoryAnalyzeChordFunctionByRoman} from './models/theory';
+import { buildScale, buildScaleSevenths, ChordProgression, romanNumerals as theoryRomanNumerals,
+  analyzeChordFunctionByRoman as theoryAnalyzeChordFunctionByRoman,
+  determineSecondaryDominantsForScale as theoryDetermineSecondaryDominantsForScale } from './models/theory';
 
 export default {
   name: 'App',
@@ -75,6 +80,7 @@ export default {
       keyNotes: null,
       keyChords: null,
       chordNotes: null,
+      secondaryDominants: null,
       chordProgression: new ChordProgression(),
       play: null
     };
@@ -110,6 +116,8 @@ export default {
         this.keyChords = buildScaleSevenths(this.currentKey, this.currentScale);
         console.log('Built scale notes:', JSON.parse(JSON.stringify(this.keyNotes)));
         // console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyChords)));
+        this.secondaryDominants = this.determineSecondaryDominantsForScale(this.keyNotes);
+        console.log('Determined secondary dominants:', JSON.parse(JSON.stringify(this.secondaryDominants)));
       }
     },
     handleAddStepToProgression(step) {
@@ -119,6 +127,12 @@ export default {
     },
     analyzeChordFunctionByRoman(chord, keyNotes) {
       return theoryAnalyzeChordFunctionByRoman(chord, keyNotes);
+    },
+    determineSecondaryDominantsForScale(keyNotes) {
+      return theoryDetermineSecondaryDominantsForScale(keyNotes);
+    },
+    getRomanNumeral(num) {
+      return theoryRomanNumerals[num];
     },
     async playProgression() {
       console.log('In App, play progression');

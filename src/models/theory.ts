@@ -1,4 +1,4 @@
-const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
+export const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
 
 export class Note {
     name: string;
@@ -139,6 +139,24 @@ export class ChordShape {
         ChordShape.MajorSeventhChord, ChordShape.MinorSeventhChord, ChordShape.DominantSeventhChord, 
         ChordShape.HalfDiminishedSeventhChord, ChordShape.DiminishedSeventhChord
     ];
+}
+
+export class SecondaryDominant {
+    secondaryDominantChord: Chord;
+    targetChordIndex: number;
+    relatedIIChord?: Chord;
+    deceptiveResolutionChord?: Chord;
+    substituteDominantChord?: Chord;
+    subVRelatedIIChord?: Chord;
+
+    constructor(secondaryDominantChord: Chord, targetChordIndex: number, relatedIIChord?: Chord, deceptiveResolutionChord?: Chord, substituteDominantChord?: Chord, subVRelatedIIChord?: Chord) {
+        this.secondaryDominantChord = secondaryDominantChord;
+        this.targetChordIndex = targetChordIndex;
+        this.relatedIIChord = relatedIIChord;
+        this.deceptiveResolutionChord = deceptiveResolutionChord;
+        this.substituteDominantChord = substituteDominantChord;
+        this.subVRelatedIIChord = subVRelatedIIChord;
+    }
 }
 
 export class Chord {
@@ -310,6 +328,19 @@ function selectNextNote(note: Note, interval: Interval): Note {
     if (newIndex >= Note.Notes.length) {
         newIndex = newIndex % Note.Notes.length;
         octaveIndex += 1;
+    }
+    const proto = Note.Notes[newIndex];
+    const newNote = cloneNote(proto);
+    newNote.octaveIndex = octaveIndex;
+    return newNote
+}
+
+function selectPriorNote(note: Note, interval: Interval): Note {
+    var octaveIndex = note.octaveIndex
+    var newIndex = note.index - interval.steps
+    if (newIndex < 0) {
+        newIndex = (newIndex + Note.Notes.length) % Note.Notes.length;
+        octaveIndex -= 1;
     }
     const proto = Note.Notes[newIndex];
     const newNote = cloneNote(proto);
@@ -668,15 +699,34 @@ export function analyzeChordFunctionByRoman(chord: Chord, keyNotes: Note[]): str
     }
 }
 
+export function determineSecondaryDominantsForScale(scaleNotes: Note[]): SecondaryDominant[] {
+    const secondaryDominants: SecondaryDominant[] = [];
+
+    // we will skip tonic and seventh as these are not typically targets of secondary dominants
+    for (let i = 0; i < scaleNotes.length - 3; i++) {
+        const targetNote = scaleNotes[(i + 1) % scaleNotes.length];
+        const dominantChord = new Chord(selectNextNote(targetNote, Interval.PerfectFifth), ChordShape.DominantSeventhChord);
+        const relatedIIChord = new Chord(selectNextNote(targetNote, Interval.MajorSecond), ChordShape.MinorSeventhChord);
+        const deceptiveResolutionChord = new Chord(selectNextNote(targetNote, Interval.MajorSixth), ChordShape.MajorSeventhChord);
+        const substituteDominantChord = new Chord(selectPriorNote(targetNote, Interval.MinorSecond), ChordShape.DominantSeventhChord);
+        const subVRelatedIIChord = new Chord(selectPriorNote(substituteDominantChord.rootNote, Interval.MinorSecond), ChordShape.MinorSeventhChord);
+        // dominantChord.notes = popuplateChordNotes(dominantChord.rootNote, dominantChord);
+        secondaryDominants.push(new SecondaryDominant(dominantChord, i, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord));
+    }
+
+    return secondaryDominants;
+}
+
 export function fillBasedOnChordFunction(chord: Chord, keyNotes: Note[]): string {
     const functionType = analyzeChordFunctionByRoman(chord, keyNotes);
     console.log("Filling based on chord function:", chord.rootNote.name, " function type:", functionType);
+    const chromaticallyAltered = chord.notes.some(note => !keyNotes.some(keyNote => keyNote.name === note.name || keyNote.sharpName === note.name || keyNote.flatName === note.name));
     if (functionType === "tonic") {
-        return "palegreen";
+        return chromaticallyAltered ? "mediumSeaGreen" : "palegreen";
     } else if (functionType === "subdominant") {
-        return "lightyellow";
+        return chromaticallyAltered ? "khaki" : "lightyellow";
     } else if (functionType === "dominant") {
-        return "lightcoral";
+        return chromaticallyAltered ? "indianred" : "lightcoral";
     } else if (functionType === "chromatic") {
         return "plum";
     } else {

@@ -28,6 +28,16 @@
           <rect x="55" y="5" width="20" height="20" style="fill:red;stroke:black;stroke-width:1" />
         </a>
       </svg>
+      <p>Color codes:</p>
+      <ul>
+        <li><span style="background-color: palegreen;">Diatonic Tonic Chord</span></li>
+        <li><span style="background-color: mediumSeaGreen;">Chromatically Altered Tonic Chord</span></li>
+        <li><span style="background-color: lightyellow;">Diatonic Subdominant Chord</span></li>
+        <li><span style="background-color: khaki;">Chromatically Altered Subdominant Chord</span></li>
+        <li><span style="background-color: lightcoral;">Diatonic Dominant Chord</span></li>
+        <li><span style="background-color: indianred;">Chromatically Altered Dominant Chord</span></li>
+        <li><span style="background-color: plum;">Other chromatic chords</span></li>
+      </ul>
     </div>
   </div>
 </template>
