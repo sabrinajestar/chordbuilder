@@ -36,6 +36,8 @@
               :keyNotes="keyNotes"
               @play="playProgression"
               @select-step="handleStepSelection" 
+              @shift-left="handleShiftLeft"
+              @shift-right="handleShiftRight"
             />
           </v-row>
         </v-col>
@@ -57,7 +59,7 @@
               :scaleNotes="keyNotes" 
               @add-step-to-progression="handleAddStepToProgression"
               @modify-progression="handleModifyProgression"
-            />
+             ></ChordBuilder>
           </v-row>
         </v-col>
       </v-row>
@@ -156,6 +158,32 @@ export default {
       this.chordProgression.steps[stepIndex] = updatedStep;
       this.currentStep = new Step(updatedStep.beats, cloneChord(updatedStep.chord), updatedStep.index);
       console.log('Updated chord progression in App:', JSON.parse(JSON.stringify(this.chordProgression)));
+    },
+    handleShiftLeft() {
+      console.log('Shifting progression step left in App');
+      if (this.chordProgression.steps.length > 1 && this.currentStepIndex > 0) {
+        const thisStep = this.chordProgression.steps[this.currentStepIndex];
+        thisStep.index = this.currentStepIndex-1;
+        const previousStep = this.chordProgression.steps[this.currentStepIndex - 1];
+        previousStep.index = this.currentStepIndex;
+        this.chordProgression.steps[this.currentStepIndex - 1] = thisStep;
+        this.chordProgression.steps[this.currentStepIndex] = previousStep;
+        this.currentStepIndex -= 1;
+        console.log('Updated chord progression after shift left:', JSON.parse(JSON.stringify(this.chordProgression)));
+      }
+    },
+    handleShiftRight() {
+      console.log('Shifting progression step right in App');
+      if (this.chordProgression.steps.length > 1 && this.currentStepIndex < this.chordProgression.steps.length - 1) {
+        const thisStep = this.chordProgression.steps[this.currentStepIndex];
+        thisStep.index = this.currentStepIndex+1;
+        const nextStep = this.chordProgression.steps[this.currentStepIndex + 1];
+        nextStep.index = this.currentStepIndex;
+        this.chordProgression.steps[this.currentStepIndex + 1] = thisStep;
+        this.chordProgression.steps[this.currentStepIndex] = nextStep;
+        this.currentStepIndex += 1;
+        console.log('Updated chord progression after shift right:', JSON.parse(JSON.stringify(this.chordProgression)));
+      }
     },
     analyzeChordFunctionByRoman(chord, keyNotes) {
       return theoryAnalyzeChordFunctionByRoman(chord, keyNotes);

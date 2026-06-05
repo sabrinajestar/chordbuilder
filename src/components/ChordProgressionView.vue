@@ -27,6 +27,14 @@
         <a @click="stop">
           <rect x="55" y="5" width="20" height="20" style="fill:red;stroke:black;stroke-width:1" />
         </a>
+        <a @click="shiftLeft">
+          <polygon points="112,5 112,25 95,15" style="fill:white;stroke:black;stroke-width:1" />
+          <rect x="112" y="12.5" width="10" height="5" style="fill:white;stroke:black;stroke-width:1" />
+        </a>
+        <a @click="shiftRight">
+          <polygon points="135,5 135,25 152,15" style="fill:white;stroke:black;stroke-width:1" />
+          <rect x="125" y="12.5" width="10" height="5" style="fill:white;stroke:black;stroke-width:1" />
+        </a>
       </svg>
       <p>Color codes:</p>
       <ul>
@@ -81,6 +89,14 @@ export default {
     selectStep(index) {
       console.log('Selected step in progression:', JSON.parse(JSON.stringify(this.progression.steps[index])));
       this.$emit('select-step', this.progression.steps[index]);
+    },
+    shiftLeft() {
+      console.log('Emit shift left event');
+      this.$emit('shift-left');
+    },
+    shiftRight() {
+      console.log('Emit shift right event');
+      this.$emit('shift-right');
     }
   }
 }
