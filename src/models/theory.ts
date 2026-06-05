@@ -232,10 +232,12 @@ export class Chord {
 export class Step {
     beats: number;
     chord: Chord;
+    index?: number;
 
-    constructor(beats: number, chord: Chord) {
+    constructor(beats: number, chord: Chord, index?: number) {
         this.beats = beats;
         this.chord = chord;
+        this.index = index;
     }
 }
 

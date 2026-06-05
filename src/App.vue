@@ -35,6 +35,7 @@
               :progression="chordProgression"
               :keyNotes="keyNotes"
               @play="playProgression"
+              @select-step="handleStepSelection" 
             />
           </v-row>
         </v-col>
@@ -51,9 +52,11 @@
             <v-divider :thickness="4" ></v-divider>
           </v-row>
           <v-row>
-            <ChordBuilder @select-chord="handleChordSelection" 
+            <ChordBuilder @select-chord="handleChordSelection"
+              :step="currentStep"
               :scaleNotes="keyNotes" 
               @add-step-to-progression="handleAddStepToProgression"
+              @modify-progression="handleModifyProgression"
             />
           </v-row>
         </v-col>
@@ -69,7 +72,7 @@ import ScalePicker from './components/ScalePicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
 import ChordProgressionView from './components/ChordProgressionView.vue';
 import TonePlayer from './components/TonePlayer.vue';
-import { buildScale, buildScaleSevenths, ChordProgression, romanNumerals as theoryRomanNumerals,
+import { buildScale, buildScaleSevenths, ChordProgression, Step, cloneChord, romanNumerals as theoryRomanNumerals,
   analyzeChordFunctionByRoman as theoryAnalyzeChordFunctionByRoman,
   fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from './models/theory';
 
@@ -90,6 +93,9 @@ export default {
       keyNotes: null,
       keyChords: null,
       chordNotes: null,
+      currentChord: null,
+      currentStep: null,
+      currentStepIndex: null,
       secondaryDominants: null,
       chordProgression: new ChordProgression(),
       play: null
@@ -99,8 +105,16 @@ export default {
     handleChordSelection(chord) {
       console.log('Selected chord in App:', JSON.parse(JSON.stringify(chord)));
       this.chordNotes = chord ? [...chord.notes] : null;
+      this.currentChord = chord;
       // console.log('Updated chord notes in App:', JSON.parse(JSON.stringify(this.chordNotes)));
       // Additional logic for handling chord selection can be added here
+    },
+    handleStepSelection(step) {
+      console.log('Selected step in App:', JSON.parse(JSON.stringify(step)));
+      this.currentStep = step ? new Step(step.beats, cloneChord(step.chord), step.index) : null;
+      this.currentStepIndex = step ? step.index : null;
+      this.chordNotes = step?.chord ? [...step.chord.notes] : null;
+      // Additional logic for handling step selection can be added here
     },
     handleKeySelection(note) {
       // console.log('Selected key in App:', JSON.parse(JSON.stringify(note)));
@@ -131,7 +145,16 @@ export default {
     },
     handleAddStepToProgression(step) {
       console.log('Adding step to progression in App:', JSON.parse(JSON.stringify(step)));
-      this.chordProgression.steps.push(step);
+      const newStep = new Step(step.beats, cloneChord(step.chord), this.chordProgression.steps.length);
+      this.chordProgression.steps.push(newStep);
+    },
+    handleModifyProgression(step) {
+      console.log("current step index in App before modification:", JSON.parse(JSON.stringify(this.currentStepIndex)));
+      console.log('Modifying step in progression in App:', JSON.parse(JSON.stringify(step)));
+      const stepIndex = this.currentStepIndex;
+      const updatedStep = new Step(step.beats, cloneChord(step.chord), stepIndex);
+      this.chordProgression.steps[stepIndex] = updatedStep;
+      this.currentStep = new Step(updatedStep.beats, cloneChord(updatedStep.chord), updatedStep.index);
       console.log('Updated chord progression in App:', JSON.parse(JSON.stringify(this.chordProgression)));
     },
     analyzeChordFunctionByRoman(chord, keyNotes) {

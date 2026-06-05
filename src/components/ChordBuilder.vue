@@ -8,7 +8,8 @@
         </v-row>
         <v-row>
           <div class="button" @click="resetSelections">Reset Chord</div>
-          <div class="button" @click="addToProgression">Add to Chord Progression</div>
+          <div class="button" @click="addProgressionStep">Add to Chord Progression</div>
+          <div class="button" @click="modifyProgressionStep">Modify Chord in Progression</div>
           Beats:
           <select :key="`beats-${selectRenderKey}`" class="app-select" id="beats-select" v-model.number="currentBeats">
             <option v-for="i in 8" :key="i" :value="i" :selected="currentBeats === i">{{ i }}</option>
@@ -53,13 +54,18 @@ import { Note, Chord, ChordShape, ChordModification, popuplateChordNotes, cloneC
 export default {
   name: 'ChordBuilder',
   props: {
-    scaleNotes: Array
+    scaleNotes: Array,
+    step: {
+      type: Object,
+      default: null
+    },
   },
   data() {
     return {
       currentRoot: null,
       currentShape: null,
       currentChord: null,
+      currentStep: null,
       currentBeats: 4,
       chordNotes: null,
       selectedRootIndex: '',
@@ -84,6 +90,22 @@ export default {
     this.selectShape(this.shapes[4]); // Major Seventh
     this.handleChordRootChange();
     this.handleShapeChange();
+  },
+  watch: {
+    step(newStep) {
+      console.log('detected step prop change in ChordBuilder');
+      if (newStep != undefined) {
+        console.log('detected step change in ChordBuilder watch:', newStep);
+        this.currentStep = new Step(newStep.beats, cloneChord(newStep.chord), newStep.index);
+        this.currentRoot = this.currentStep.chord?.rootNote || this.currentStep.chord?.notes?.[0] || null;
+        this.currentShape = this.currentStep.chord?.shape || null;
+        this.currentChord = this.currentStep.chord || null;
+        this.selectedRootIndex = this.currentRoot ? String(this.currentRoot.index) : '';
+        this.selectedShapeName = this.currentShape ? this.currentShape.name : '';
+      } else {
+        this.resetSelections();
+      }
+    }
   },
   methods: {
     handleChordRootChange() {
@@ -162,6 +184,7 @@ export default {
       this.currentRoot = null;
       this.currentShape = null;
       this.currentChord = null;
+      this.currentStep = null;
       this.chordNotes = null;
       this.currentBeats = 4;
       this.selectedRootIndex = '';
@@ -170,13 +193,21 @@ export default {
       this.$emit('select-chord', null);
       // console.log('Selections have been reset.');
     },
-    addToProgression() {
+    addProgressionStep() {
+      if (this.currentChord) {
+        const newStep = new Step(this.currentBeats, cloneChord(this.currentChord));
+        this.$emit('add-step-to-progression', newStep);
+        this.resetSelections();
+        // console.log('Added step to progression:', JSON.parse(JSON.stringify(newStep)));
+      }
+    },
+    modifyProgressionStep() {
       if (this.currentChord) {
         const dupeChord = cloneChord(this.currentChord);
-        const step = new Step(this.currentBeats, dupeChord); // Assuming 4 beats for now
+        const updatedStep = new Step(this.currentBeats, dupeChord, this.currentStep?.index);
         this.resetSelections();
-        this.$emit('add-step-to-progression', step);
-        // console.log('Added chord to progression:', JSON.parse(JSON.stringify(step)));
+        this.$emit('modify-progression', updatedStep);
+        // console.log('Added or updated chord to progression:', JSON.parse(JSON.stringify(this.currentStep)));
       }
     }
   }

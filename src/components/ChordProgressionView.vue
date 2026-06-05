@@ -12,7 +12,7 @@
         </g>
         <g>
           <rect v-for="(step, i) in progression.steps" :key="step.chord.name" :x="getStepX(i)" y="0" :width="step.beats * 20" height="50" :fill="fillBasedOnChordFunction(step.chord, this.keyNotes)" stroke="gray" stroke-width="1"/>
-          <text v-for="(step, i) in progression.steps" :key="'text-' + step.chord.name" :x="getStepX(i) + (step.beats * 20) / 2" y="30" text-anchor="middle" dominant-baseline="middle" font-size="14" style="cursor: grab;">{{ step.chord.romanNumeral(this.keyNotes) }}</text>
+          <text v-for="(step, i) in progression.steps" :key="i" :id="`progression-step-${i}`" v-on:click="selectStep(i)" :x="getStepX(i) + (step.beats * 20) / 2" y="30" text-anchor="middle" dominant-baseline="middle" font-size="14" style="cursor: grab;">{{ step.chord.romanNumeral(this.keyNotes) }}</text>
         </g>
       </svg>
       <svg width="640" height="100" xmlns="http://www.w3.org/2000/svg">
@@ -67,6 +67,21 @@ export default {
       console.log('Emit play event');
       this.$emit('play');
     },
+    setStepIndex(step, index) {
+      step.index = index;
+    },
+    // pause() {
+    //   console.log('Emit pause event');
+    //   this.$emit('pause');
+    // },
+    // stop() {
+    //   console.log('Emit stop event');
+    //   this.$emit('stop');
+    // },
+    selectStep(index) {
+      console.log('Selected step in progression:', JSON.parse(JSON.stringify(this.progression.steps[index])));
+      this.$emit('select-step', this.progression.steps[index]);
+    }
   }
 }
 </script>
