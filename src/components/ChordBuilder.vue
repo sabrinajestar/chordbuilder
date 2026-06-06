@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import { Note, Chord, ChordShape, ChordModification, popuplateChordNotes, cloneChord, toggleChordModification, applyChordModifications, Step } from '../models/theory.ts';
+import { Note, Chord, ChordShape, ChordModification, populateChordNotes, cloneChord, toggleChordModification, applyChordModifications, Step } from '../models/theory.ts';
 
 export default {
   name: 'ChordBuilder',
@@ -59,6 +59,7 @@ export default {
       type: Object,
       default: null
     },
+    chordIn: Chord
   },
   data() {
     return {
@@ -105,6 +106,12 @@ export default {
       } else {
         this.resetSelections();
       }
+    },
+    chordIn(newChord) {
+      this.currentRoot = newChord?.rootNote || newChord?.notes?.[0] || null;
+      this.currentShape = newChord?.shape || null;
+      this.currentChord = newChord || null;
+      this.chordNotes = newChord?.notes || null;
     }
   },
   methods: {
@@ -147,7 +154,7 @@ export default {
     },
     setChordNotes() {
       if (this.currentRoot && this.currentChord) {
-        this.currentChord.notes = popuplateChordNotes(this.currentRoot, this.currentChord);
+        this.currentChord.notes = populateChordNotes(this.currentRoot, this.currentChord);
         this.$emit('select-chord', this.currentChord);
       }
     },

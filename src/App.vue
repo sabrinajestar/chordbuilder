@@ -17,10 +17,10 @@
             </tr>
             <tr v-for="chord in keyChords" :key="chord.notation" :style="{ backgroundColor: this.fillBasedOnChordFunction(chord, keyNotes) }">
               <td>{{ chord.romanNumeral(this.keyNotes) }}</td>
-              <td>{{ chord.notation }}</td>
-              <td>{{ chord.secondaryDominant ? chord.secondaryDominant.relatedIIChord.notation + " -> " + chord.secondaryDominant.secondaryDominantChord.notation + " (V/" + this.getRomanNumeral(chord.secondaryDominant.targetChordIndex) + ")" : '&nbsp;' }}</td>
-              <td>{{ chord.secondaryDominant ? chord.secondaryDominant.deceptiveResolutionChord.notation + " (VI/" + this.getRomanNumeral(chord.secondaryDominant.targetChordIndex) + ")" : '&nbsp;' }}</td>
-              <td>{{ chord.secondaryDominant ? chord.secondaryDominant.subVRelatedIIChord.notation + " -> " + chord.secondaryDominant.substituteDominantChord.notation + " (subV/" + this.getRomanNumeral(chord.secondaryDominant.targetChordIndex) + ")" : '&nbsp;' }}</td>
+              <td><a href="#" v-on:click="handleChordSelection(chord)">{{ chord.notation }}</a></td>
+              <td><p v-if="chord.secondaryDominant"><a href="#" v-on:click="handleChordSelection(chord.secondaryDominant.relatedIIChord)">{{ chord.secondaryDominant.relatedIIChord.notation }}</a> -> <a href="#" v-on:click="handleChordSelection(chord.secondaryDominant.secondaryDominantChord)">{{chord.secondaryDominant.secondaryDominantChord.notation + " (V/" + this.getRomanNumeral(chord.secondaryDominant.targetChordIndex) + ")"}}</a></p></td>
+              <td><p v-if="chord.secondaryDominant"><a href="#" v-on:click="handleChordSelection(chord.secondaryDominant.deceptiveResolutionChord)">{{ chord.secondaryDominant.deceptiveResolutionChord.notation + " (VI/" + this.getRomanNumeral(chord.secondaryDominant.targetChordIndex) + ")" }}</a></p></td>
+              <td><p v-if="chord.secondaryDominant"><a href="#" v-on:click="handleChordSelection(chord.secondaryDominant.subVRelatedIIChord)">{{ chord.secondaryDominant.subVRelatedIIChord.notation }}</a> -> <a href="#" v-on:click="handleChordSelection(chord.secondaryDominant.substituteDominantChord)">{{ chord.secondaryDominant.substituteDominantChord.notation + " (subV/" + this.getRomanNumeral(chord.secondaryDominant.targetChordIndex) + ")" }}</a></p></td>
             </tr>
           </table>
         </v-col>
@@ -55,6 +55,7 @@
           </v-row>
           <v-row>
             <ChordBuilder @select-chord="handleChordSelection"
+              :chordIn="currentChord"
               :step="currentStep"
               :scaleNotes="keyNotes" 
               @add-step-to-progression="handleAddStepToProgression"

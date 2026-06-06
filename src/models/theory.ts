@@ -351,13 +351,14 @@ function selectPriorNote(note: Note, interval: Interval): Note {
     return newNote
 }
 
-export function popuplateChordNotes(root: Note, chord: Chord): Note[] {
+export function populateChordNotes(root: Note, chord: Chord): Note[] {
     const notes: Note[] = [];
     notes.push(root);
     chord.rootNote = root;
     var thisNote = root;
     for (let interval of chord.intervals) {
         var nextNote = selectNextNote(thisNote, interval)
+        console.log("Populating chord notes, current note:", thisNote.name, " next note:", nextNote.name, " interval:", interval.name);
         notes.push(nextNote)
         thisNote = nextNote
     }
@@ -427,7 +428,7 @@ export function buildScaleTriads(root: Note, scale: Scale): Chord[] {
         // console.log("triad notes:", scaleNotes[i].name, secondNote.name, thirdNote.name);
         var shape = classifyChord([firstInterval!, secondInterval!]);
         var chord = new Chord(scaleNotes[i], shape);
-        for (let note of [secondNote, thirdNote]) {
+        for (let note of [scaleNotes[i], secondNote, thirdNote]) {
             chord.notes.push(note);
         }
         chords.push(chord);
@@ -469,7 +470,7 @@ export function buildScaleSevenths(root: Note, scale: Scale): Chord[] {
         var shape = classifyChord([firstInterval!, secondInterval!, thirdInterval!]);
         var chord = new Chord(scaleNotes[i], shape);
         console.log("Classified chord shape:", shape.name, " for chord:", chord);
-        for (let note of [secondNote, thirdNote, fourthNote]) {
+        for (let note of [scaleNotes[i], secondNote, thirdNote, fourthNote]) {
             chord.notes.push(note);
         }
         console.log("Built chord:", chord.notation);
@@ -710,10 +711,15 @@ export function analyzeChordFunctionByRoman(chord: Chord, keyNotes: Note[]): str
 export function getSecondaryDominantsForChord(chord: Chord, targetIndex: number): SecondaryDominant {
         const targetNote = chord.rootNote
         const dominantChord = new Chord(selectNextNote(targetNote, Interval.PerfectFifth), ChordShape.DominantSeventhChord);
+        dominantChord.notes = populateChordNotes(dominantChord.rootNote, dominantChord);
         const relatedIIChord = new Chord(selectNextNote(targetNote, Interval.MajorSecond), ChordShape.MinorSeventhChord);
+        relatedIIChord.notes = populateChordNotes(relatedIIChord.rootNote, relatedIIChord);
         const deceptiveResolutionChord = new Chord(selectNextNote(targetNote, Interval.MajorSixth), ChordShape.MajorSeventhChord);
+        deceptiveResolutionChord.notes = populateChordNotes(deceptiveResolutionChord.rootNote, deceptiveResolutionChord);
         const substituteDominantChord = new Chord(selectPriorNote(targetNote, Interval.MinorSecond), ChordShape.DominantSeventhChord);
+        substituteDominantChord.notes = populateChordNotes(substituteDominantChord.rootNote, substituteDominantChord);
         const subVRelatedIIChord = new Chord(selectPriorNote(substituteDominantChord.rootNote, Interval.MinorSecond), ChordShape.MinorSeventhChord);
+        subVRelatedIIChord.notes = populateChordNotes(subVRelatedIIChord.rootNote, subVRelatedIIChord);
         return new SecondaryDominant(dominantChord, targetIndex, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord);
 }
 
@@ -728,7 +734,7 @@ export function determineSecondaryDominantsForScale(scaleNotes: Note[]): Seconda
         const deceptiveResolutionChord = new Chord(selectNextNote(targetNote, Interval.MajorSixth), ChordShape.MajorSeventhChord);
         const substituteDominantChord = new Chord(selectPriorNote(targetNote, Interval.MinorSecond), ChordShape.DominantSeventhChord);
         const subVRelatedIIChord = new Chord(selectPriorNote(substituteDominantChord.rootNote, Interval.MinorSecond), ChordShape.MinorSeventhChord);
-        // dominantChord.notes = popuplateChordNotes(dominantChord.rootNote, dominantChord);
+        // dominantChord.notes = populateChordNotes(dominantChord.rootNote, dominantChord);
         secondaryDominants.push(new SecondaryDominant(dominantChord, i, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord));
     }
 
