@@ -14,13 +14,15 @@
               <th>Secondary Dominant Cadence</th>
               <th>Deceptive Resolution</th>
               <th>Substitute Dominant Cadence</th>
+              <th>Tritone Substitutes</th>
             </tr>
             <tr v-for="chord in keyChords" :key="chord.notation" :style="{ backgroundColor: this.fillBasedOnChordFunction(chord, keyNotes) }">
               <td>{{ chord.romanNumeral(this.keyNotes) }}</td>
               <td><a href="#" v-on:click="handleChordSelection(chord)">{{ chord.notation }}</a></td>
-              <td><p v-if="chord.secondaryDominant"><a href="#" v-on:click="handleChordSelection(chord.secondaryDominant.relatedIIChord)">{{ chord.secondaryDominant.relatedIIChord.notation }}</a> -> <a href="#" v-on:click="handleChordSelection(chord.secondaryDominant.secondaryDominantChord)">{{chord.secondaryDominant.secondaryDominantChord.notation + " (V/" + this.getRomanNumeral(chord.secondaryDominant.targetChordIndex) + ")"}}</a></p></td>
-              <td><p v-if="chord.secondaryDominant"><a href="#" v-on:click="handleChordSelection(chord.secondaryDominant.deceptiveResolutionChord)">{{ chord.secondaryDominant.deceptiveResolutionChord.notation + " (VI/" + this.getRomanNumeral(chord.secondaryDominant.targetChordIndex) + ")" }}</a></p></td>
-              <td><p v-if="chord.secondaryDominant"><a href="#" v-on:click="handleChordSelection(chord.secondaryDominant.subVRelatedIIChord)">{{ chord.secondaryDominant.subVRelatedIIChord.notation }}</a> -> <a href="#" v-on:click="handleChordSelection(chord.secondaryDominant.substituteDominantChord)">{{ chord.secondaryDominant.substituteDominantChord.notation + " (subV/" + this.getRomanNumeral(chord.secondaryDominant.targetChordIndex) + ")" }}</a></p></td>
+              <td><p v-if="chord.relatedChords"><a href="#" v-on:click="handleChordSelection(chord.relatedChords.relatedIIChord)">{{ chord.relatedChords.relatedIIChord.notation }}</a> -> <a href="#" v-on:click="handleChordSelection(chord.relatedChords.secondaryDominantChord)">{{chord.relatedChords.secondaryDominantChord.notation + " (V/" + this.getRomanNumeral(chord.relatedChords.targetChordIndex) + ")"}}</a></p></td>
+              <td><p v-if="chord.relatedChords"><a href="#" v-on:click="handleChordSelection(chord.relatedChords.deceptiveResolutionChord)">{{ chord.relatedChords.deceptiveResolutionChord.notation + " (VI/" + this.getRomanNumeral(chord.relatedChords.targetChordIndex) + ")" }}</a></p></td>
+              <td><p v-if="chord.relatedChords"><a href="#" v-on:click="handleChordSelection(chord.relatedChords.subVRelatedIIChord)">{{ chord.relatedChords.subVRelatedIIChord.notation }}</a> -> <a href="#" v-on:click="handleChordSelection(chord.relatedChords.substituteDominantChord)">{{ chord.relatedChords.substituteDominantChord.notation + " (subV/" + this.getRomanNumeral(chord.relatedChords.targetChordIndex) + ")" }}</a></p></td>
+              <td><p v-if="chord.relatedChords && chord.relatedChords.tritoneSubstituteChord"><a href="#" v-on:click="handleChordSelection(chord.relatedChords.tritoneSubstituteChord)">{{ chord.relatedChords.tritoneSubstituteChord.notation }}</a></p></td>
             </tr>
           </table>
         </v-col>
@@ -99,7 +101,7 @@ export default {
       currentChord: null,
       currentStep: null,
       currentStepIndex: null,
-      secondaryDominants: null,
+      relatedChords: null,
       chordProgression: new ChordProgression(),
       play: null
     };
@@ -143,7 +145,7 @@ export default {
         this.keyChords = buildScaleSevenths(this.currentKey, this.currentScale);
         console.log('Built scale notes:', JSON.parse(JSON.stringify(this.keyNotes)));
         // console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyChords)));
-        console.log('Determined secondary dominants:', JSON.parse(JSON.stringify(this.secondaryDominants)));
+        console.log('Determined related chords:', JSON.parse(JSON.stringify(this.relatedChords)));
       }
     },
     handleAddStepToProgression(step) {

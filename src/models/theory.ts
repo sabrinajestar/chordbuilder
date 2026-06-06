@@ -141,21 +141,23 @@ export class ChordShape {
     ];
 }
 
-export class SecondaryDominant {
+export class RelatedChords {
     secondaryDominantChord: Chord;
     targetChordIndex: number;
     relatedIIChord?: Chord;
     deceptiveResolutionChord?: Chord;
     substituteDominantChord?: Chord;
     subVRelatedIIChord?: Chord;
+    tritoneSubstituteChord?: Chord;
 
-    constructor(secondaryDominantChord: Chord, targetChordIndex: number, relatedIIChord?: Chord, deceptiveResolutionChord?: Chord, substituteDominantChord?: Chord, subVRelatedIIChord?: Chord) {
+    constructor(secondaryDominantChord: Chord, targetChordIndex: number, relatedIIChord?: Chord, deceptiveResolutionChord?: Chord, substituteDominantChord?: Chord, subVRelatedIIChord?: Chord, tritoneSubstituteChord?: Chord) {
         this.secondaryDominantChord = secondaryDominantChord;
         this.targetChordIndex = targetChordIndex;
         this.relatedIIChord = relatedIIChord;
         this.deceptiveResolutionChord = deceptiveResolutionChord;
         this.substituteDominantChord = substituteDominantChord;
         this.subVRelatedIIChord = subVRelatedIIChord;
+        this.tritoneSubstituteChord = tritoneSubstituteChord;
     }
 }
 
@@ -166,7 +168,7 @@ export class Chord {
     notes: Note[];
     modifications: ChordModification[] = [];
     bassNote?: Note;
-    secondaryDominant?: SecondaryDominant;
+    relatedChords?: RelatedChords;
 
     constructor(rootNote: Note, shape: ChordShape, notes: Note[] = []) {
         this.rootNote = rootNote;
@@ -476,8 +478,8 @@ export function buildScaleSevenths(root: Note, scale: Scale): Chord[] {
         console.log("Built chord:", chord.notation);
 
         if (i >= 1 && i <= 5) {
-            console.log("Adding secondary dominant for chord:", chord.notation);
-            chord.secondaryDominant = getSecondaryDominantsForChord(chord, i);
+            console.log("Adding related chords for chord:", chord.notation);
+            chord.relatedChords = getRelatedChordsForChord(chord, i);
         }
         chords.push(chord);
     }
@@ -708,7 +710,7 @@ export function analyzeChordFunctionByRoman(chord: Chord, keyNotes: Note[]): str
     }
 }
 
-export function getSecondaryDominantsForChord(chord: Chord, targetIndex: number): SecondaryDominant {
+export function getRelatedChordsForChord(chord: Chord, targetIndex: number): RelatedChords {
         const targetNote = chord.rootNote
         const dominantChord = new Chord(selectNextNote(targetNote, Interval.PerfectFifth), ChordShape.DominantSeventhChord);
         dominantChord.notes = populateChordNotes(dominantChord.rootNote, dominantChord);
@@ -720,11 +722,16 @@ export function getSecondaryDominantsForChord(chord: Chord, targetIndex: number)
         substituteDominantChord.notes = populateChordNotes(substituteDominantChord.rootNote, substituteDominantChord);
         const subVRelatedIIChord = new Chord(selectPriorNote(substituteDominantChord.rootNote, Interval.MinorSecond), ChordShape.MinorSeventhChord);
         subVRelatedIIChord.notes = populateChordNotes(subVRelatedIIChord.rootNote, subVRelatedIIChord);
-        return new SecondaryDominant(dominantChord, targetIndex, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord);
+        let tritoneSubstituteChord: Chord = null;
+        if (chord.shape.name === "dominant seventh") {
+            tritoneSubstituteChord = new Chord(selectPriorNote(targetNote, Interval.DiminishedFifth), ChordShape.DominantSeventhChord);
+            tritoneSubstituteChord.notes = populateChordNotes(tritoneSubstituteChord.rootNote, tritoneSubstituteChord);
+        }
+        return new RelatedChords(dominantChord, targetIndex, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord, tritoneSubstituteChord);
 }
 
-export function determineSecondaryDominantsForScale(scaleNotes: Note[]): SecondaryDominant[] {
-    const secondaryDominants: SecondaryDominant[] = [];
+export function determineSecondaryDominantsForScale(scaleNotes: Note[]): RelatedChords[] {
+    const relatedChords: RelatedChords[] = [];
 
     // we will skip tonic and seventh as these are not typically targets of secondary dominants
     for (let i = 0; i < scaleNotes.length - 3; i++) {
@@ -735,10 +742,10 @@ export function determineSecondaryDominantsForScale(scaleNotes: Note[]): Seconda
         const substituteDominantChord = new Chord(selectPriorNote(targetNote, Interval.MinorSecond), ChordShape.DominantSeventhChord);
         const subVRelatedIIChord = new Chord(selectPriorNote(substituteDominantChord.rootNote, Interval.MinorSecond), ChordShape.MinorSeventhChord);
         // dominantChord.notes = populateChordNotes(dominantChord.rootNote, dominantChord);
-        secondaryDominants.push(new SecondaryDominant(dominantChord, i, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord));
+        relatedChords.push(new RelatedChords(dominantChord, i, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord));
     }
 
-    return secondaryDominants;
+    return relatedChords;
 }
 
 export function fillBasedOnChordFunction(chord: Chord, keyNotes: Note[]): string {
