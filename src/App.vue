@@ -40,7 +40,8 @@
               @select-step="handleStepSelection" 
               @shift-left="handleShiftLeft"
               @shift-right="handleShiftRight"
-            />
+              @delete-step="handleDeleteStep"
+            ></ChordProgressionView>
           </v-row>
         </v-col>
         <v-col cols="5">
@@ -186,6 +187,22 @@ export default {
         this.chordProgression.steps[this.currentStepIndex] = nextStep;
         this.currentStepIndex += 1;
         console.log('Updated chord progression after shift right:', JSON.parse(JSON.stringify(this.chordProgression)));
+      }
+    },
+    handleDeleteStep() {
+      console.log('Deleting progression step in App');
+      if (this.chordProgression.steps.length > 0) {
+        this.chordProgression.steps.splice(this.currentStepIndex, 1);
+        // Update indices of remaining steps
+        for (let i = 0; i < this.chordProgression.steps.length; i++) {
+          this.chordProgression.steps[i].index = i;
+        }
+        // Update current step index and selection
+        if (this.currentStepIndex >= this.chordProgression.steps.length) {
+          this.currentStepIndex = this.chordProgression.steps.length - 1;
+        }
+        this.currentStep = this.chordProgression.steps[this.currentStepIndex] || null;
+        console.log('Updated chord progression after deletion:', JSON.parse(JSON.stringify(this.chordProgression)));
       }
     },
     analyzeChordFunctionByRoman(chord, keyNotes) {

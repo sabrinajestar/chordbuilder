@@ -18,6 +18,7 @@
       <svg width="640" height="100" xmlns="http://www.w3.org/2000/svg">
         <a @click="play">
           <polygon points="0,5 0,25 17,15" style="fill:green;stroke:black;stroke-width:1" />
+          <title>Play Progression</title>
         </a>
         <a @click="pause">
           <rect x="30" y="5" width="10" height="20" fill-opacity="0"/>
@@ -30,10 +31,17 @@
         <a @click="shiftLeft">
           <polygon points="112,5 112,25 95,15" style="fill:white;stroke:black;stroke-width:1" />
           <rect x="112" y="12.5" width="10" height="5" style="fill:white;stroke:black;stroke-width:1" />
+          <title>Shift This Chord Left</title>
         </a>
         <a @click="shiftRight">
           <polygon points="135,5 135,25 152,15" style="fill:white;stroke:black;stroke-width:1" />
           <rect x="125" y="12.5" width="10" height="5" style="fill:white;stroke:black;stroke-width:1" />
+          <title>Shift This Chord Right</title>
+        </a>
+        <a @click="deleteStep">
+          <line x1="175" y1="5" x2="200" y2="30" style="stroke:red;stroke-width:5" />
+          <line x1="200" y1="5" x2="175" y2="30" style="stroke:red;stroke-width:5" />
+          <title>Delete This Chord</title>
         </a>
       </svg>
       <p>Color codes:</p>
@@ -97,6 +105,10 @@ export default {
     shiftRight() {
       console.log('Emit shift right event');
       this.$emit('shift-right');
+    },
+    deleteStep() {
+      console.log('Emit delete step event');
+      this.$emit('delete-step');
     }
   }
 }
