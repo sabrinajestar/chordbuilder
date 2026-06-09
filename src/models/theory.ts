@@ -234,11 +234,15 @@ export class Chord {
 export class Step {
     beats: number;
     chord: Chord;
+    keyRoot?: Note;
+    keyScale?: Scale;
     index?: number;
 
-    constructor(beats: number, chord: Chord, index?: number) {
+    constructor(beats: number, chord: Chord, keyRoot?: Note, keyScale?: Scale, index?: number) {
         this.beats = beats;
         this.chord = chord;
+        this.keyRoot = keyRoot;
+        this.keyScale = keyScale;
         this.index = index;
     }
 }
@@ -361,6 +365,21 @@ export function populateChordNotes(root: Note, chord: Chord): Note[] {
     for (let interval of chord.intervals) {
         var nextNote = selectNextNote(thisNote, interval)
         console.log("Populating chord notes, current note:", thisNote.name, " next note:", nextNote.name, " interval:", interval.name);
+        notes.push(nextNote)
+        thisNote = nextNote
+    }
+
+    return notes;
+}
+
+function populateScaleNotes(root: Note, scale: Scale): Note[] {
+    console.log("Populating scale notes for root:", root.name, " scale:", scale.name);
+    const notes: Note[] = [];
+    notes.push(root);
+    var thisNote = root;
+    for (let interval of scale.intervals) {
+        var nextNote = selectNextNote(thisNote, interval)
+        console.log("Populating scale notes, current note:", thisNote.name, " next note:", nextNote.name, " interval:", interval.name);
         notes.push(nextNote)
         thisNote = nextNote
     }
@@ -748,7 +767,9 @@ export function determineSecondaryDominantsForScale(scaleNotes: Note[]): Related
     return relatedChords;
 }
 
-export function fillBasedOnChordFunction(chord: Chord, keyNotes: Note[]): string {
+export function fillBasedOnChordFunction(chord: Chord, keyRoot: Note, keyScale: Scale): string {
+    console.log("Determining fill color for chord:", chord.notation, " in key of:", keyRoot.name, " ", keyScale.name);
+    const keyNotes = populateScaleNotes(keyRoot, keyScale);
     const functionType = analyzeChordFunctionByRoman(chord, keyNotes);
     console.log("Filling based on chord function:", chord.rootNote.name, " function type:", functionType);
     const chromaticallyAltered = chord.notes.some(note => !keyNotes.some(keyNote => keyNote.name === note.name || keyNote.sharpName === note.name || keyNote.flatName === note.name));

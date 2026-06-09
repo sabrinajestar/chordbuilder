@@ -11,8 +11,9 @@
           <line v-for="i in 8" :key="i" :x1="i * 80" y1="50" y2="100" :x2="i * 80" style="stroke:black;stroke-width:2" />
         </g>
         <g>
-          <rect v-for="(step, i) in progression.steps" :key="step.chord.name" :x="getStepX(i)" y="0" :width="step.beats * 20" height="50" :fill="fillBasedOnChordFunction(step.chord, this.keyNotes)" stroke="gray" stroke-width="1"/>
-          <text v-for="(step, i) in progression.steps" :key="i" :id="`progression-step-${i}`" v-on:click="selectStep(i)" :x="getStepX(i) + (step.beats * 20) / 2" y="30" text-anchor="middle" dominant-baseline="middle" font-size="14" style="cursor: grab;">{{ step.chord.romanNumeral(this.keyNotes) }}</text>
+          <rect v-for="(step, i) in progression.steps" :key="step.chord.name" :x="getStepX(i)" y="0" :width="step.beats * 20" height="50" :fill="fillBasedOnChordFunction(step.chord, step.keyRoot, step.keyScale)" stroke="gray" stroke-width="1"/>
+          <text v-for="(step, i) in progression.steps" :key="`key-${i}`" :id="`progression-step-${i}-key`" :x="getStepX(i) + (step.beats * 20) / 2" y="10" text-anchor="middle" dominant-baseline="text-top" font-size="11">{{ displayKey(i, step.keyRoot, step.keyScale) }}</text>
+          <text v-for="(step, i) in progression.steps" :key="i" :id="`progression-step-${i}`" v-on:click="selectStep(i)" :x="getStepX(i) + (step.beats * 20) / 2" y="30" text-anchor="middle" dominant-baseline="middle" font-size="14" style="cursor: grab;">{{ stepRomanNumeral(step) }}</text>
         </g>
       </svg>
       <svg width="640" height="100" xmlns="http://www.w3.org/2000/svg">
@@ -59,14 +60,13 @@
 </template>
 
 <script>
-import { ChordProgression, Note, fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from '../models/theory.ts';
+import { ChordProgression, buildScale, fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from '../models/theory.ts';
 // import { setTimeout as delay } from 'timers/promises';
 
 export default {
   name: 'ChordProgressionView',
   props: {
-    progression: ChordProgression,
-    keyNotes: Array[Note]
+    progression: ChordProgression
   },
   methods: {
     getStepX(index) {
@@ -76,8 +76,21 @@ export default {
       }
       return x;
     },
-    fillBasedOnChordFunction(chord, keyNotes) {
-      return theoryFillBasedOnChordFunction(chord, keyNotes);
+    fillBasedOnChordFunction(chord, keyRoot, keyScale) {
+      if (!chord || !keyRoot || !keyScale) {
+        return 'gray';
+      }
+      return theoryFillBasedOnChordFunction(chord, keyRoot, keyScale);
+    },
+    stepRomanNumeral(step) {
+      if (!step?.chord) {
+        return '';
+      }
+      if (!step.keyRoot || !step.keyScale) {
+        return step.chord.notation;
+      }
+      const stepScaleNotes = buildScale(step.keyRoot, step.keyScale);
+      return step.chord.romanNumeral(stepScaleNotes);
     },
     play() {
       console.log('Emit play event');
@@ -109,6 +122,15 @@ export default {
     deleteStep() {
       console.log('Emit delete step event');
       this.$emit('delete-step');
+    },
+    displayKey(index, keyRoot, keyScale) {
+      if (!keyRoot || !keyScale) return '';
+      if (index === 0 || keyRoot != this.progression.steps[index-1].keyRoot) {
+        console.log('Displaying key for step', index, ':', keyRoot.name, keyScale.name);
+        return (keyRoot.displayName || keyRoot.name) + ' ' + keyScale.name;
+      } else {
+        return '';
+      }
     }
   }
 }
