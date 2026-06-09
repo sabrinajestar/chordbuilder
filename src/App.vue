@@ -6,7 +6,9 @@
           <TonePlayer :chordNotes="chordNotes"></TonePlayer>
         </v-col>
         <v-col>
-          <div>current Key & Scale: {{ currentKey && currentScale ? (currentKey.displayName || currentKey.name) + ' ' + currentScale.name : 'No key or scale selected' }}</div>
+          <div>
+            <p>Current Key & Scale: {{ currentKey && currentScale ? (currentKey.displayName || currentKey.name) + ' ' + currentScale.name : 'No key or scale selected' }}</p></div>
+            <p>Cycle of Fifths: <span v-for="note in cycleOfFifths" :key="`fifths-${note.name}`"><a href="#" v-on:click="handleKeySelection(note)">{{ note.displayName || note.name }}</a> &nbsp;</span></p>
           <table>
             <tr>
               <th>Functional Chord</th>
@@ -77,7 +79,7 @@ import ScalePicker from './components/ScalePicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
 import ChordProgressionView from './components/ChordProgressionView.vue';
 import TonePlayer from './components/TonePlayer.vue';
-import { buildScale, buildScaleSevenths, ChordProgression, Step, cloneChord,
+import { buildScale, buildScaleSevenths, ChordProgression, Step, cloneChord, Note,
   romanNumerals as theoryRomanNumerals,
   analyzeChordFunctionByRoman as theoryAnalyzeChordFunctionByRoman,
   fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from './models/theory';
@@ -104,7 +106,8 @@ export default {
       currentStepIndex: null,
       relatedChords: null,
       chordProgression: new ChordProgression(),
-      play: null
+      play: null,
+      cycleOfFifths: [Note.C, Note.G, Note.D, Note.A, Note.E, Note.B, Note.FSHARP, Note.CSHARP, Note.GSHARP, Note.DSHARP, Note.ASHARP, Note.F],
     };
   },
   methods: {
