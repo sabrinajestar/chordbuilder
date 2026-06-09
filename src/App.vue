@@ -242,11 +242,15 @@ export default {
       console.log('In App, play progression');
       this.chordNotes = null;
       for (let step of this.chordProgression.steps) {
+        // Update key/scale once per step and rebuild the table before playing beats
+        if (step.keyRoot && step.keyScale) {
+          this.currentKey = step.keyRoot;
+          this.currentScale = step.keyScale;
+          this.buildScaleAndTriads();
+          await this.$nextTick(); // let Vue flush the table re-render before the first beat
+        }
         console.log(`Playing chord: ${step.chord.romanNumeral(this.keyNotes)} for ${step.beats} beats`);
         for (let i = 1; i <= step.beats; i++) {
-          this.currentKey = step.keyRoot || this.currentKey;
-          this.currentScale = step.keyScale || this.currentScale;
-          this.keyNotes = buildScale(this.currentKey, this.currentScale);
           this.chordNotes = step.chord.notes;
           await new Promise(resolve => setTimeout(resolve, 500));
         }
