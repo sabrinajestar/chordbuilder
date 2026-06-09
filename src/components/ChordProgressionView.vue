@@ -2,18 +2,18 @@
   <div id="chordprogression" v-if="progression !== null">
     <p>Current Progression</p>
     <div style="display: flex; flex-direction: column; align-items: flex-start;">
-      <svg width="640" height="100" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="0" width="640" height="100" class="progressionview" fill="url(#beatHash)" />
+      <svg v-for="line in getNumberOfLines()" :key="`progression-line-${line}`" width="640" :height="100" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="640" height="80" class="progressionview" fill="url(#beatHash)" />
         <g>
-          <line v-for="i in 32" :key="i" :x1="i * 20" y1="70" y2="100" :x2="i * 20" style="stroke:black;stroke-width:1" />
+          <line v-for="i in 32" :key="`beat-${line}-${i}`" :x1="i * 20" y1="65" y2="80" :x2="i * 20" style="stroke:black;stroke-width:1" />
         </g>
         <g>
-          <line v-for="i in 8" :key="i" :x1="i * 80" y1="50" y2="100" :x2="i * 80" style="stroke:black;stroke-width:2" />
+          <line v-for="i in 8" :key="`measure-${line}-${i}`" :x1="i * 80" y1="50" y2="80" :x2="i * 80" style="stroke:black;stroke-width:2" />
         </g>
         <g>
-          <rect v-for="(step, i) in progression.steps" :key="step.chord.name" :x="getStepX(i)" y="0" :width="step.beats * 20" height="50" :fill="fillBasedOnChordFunction(step.chord, step.keyRoot, step.keyScale)" stroke="gray" stroke-width="1"/>
-          <text v-for="(step, i) in progression.steps" :key="`key-${i}`" :id="`progression-step-${i}-key`" :x="getStepX(i) + (step.beats * 20) / 2" y="10" text-anchor="middle" dominant-baseline="text-top" font-size="11">{{ displayKey(i, step.keyRoot, step.keyScale) }}</text>
-          <text v-for="(step, i) in progression.steps" :key="i" :id="`progression-step-${i}`" v-on:click="selectStep(i)" :x="getStepX(i) + (step.beats * 20) / 2" y="30" text-anchor="middle" dominant-baseline="middle" font-size="14" style="cursor: grab;">{{ stepRomanNumeral(step) }}</text>
+          <rect v-for="(step, i) in progression.steps" :key="`step-${i}`" :x="getStepXOnLine(i, line)" y="0" :width="step.beats * 20" height="50" :fill="fillBasedOnChordFunction(step.chord, step.keyRoot, step.keyScale)" stroke="gray" stroke-width="1" :style="{ display: isStepOnLine(i, line) ? 'block' : 'none' }"/>
+          <text v-for="(step, i) in progression.steps" :key="`key-${line}-${i}`" :id="`progression-step-${i}-key`" :x="getStepXOnLine(i, line) + (step.beats * 20) / 2" y="10" text-anchor="middle" dominant-baseline="text-top" font-size="11" :style="{ display: isStepOnLine(i, line) ? 'block' : 'none' }">{{ displayKey(i, step.keyRoot, step.keyScale) }}</text>
+          <text v-for="(step, i) in progression.steps" :key="`text-${line}-${i}`" :id="`progression-step-${i}`" v-on:click="selectStep(i)" :x="getStepXOnLine(i, line) + (step.beats * 20) / 2" y="30" text-anchor="middle" dominant-baseline="middle" font-size="14" style="cursor: grab;" :style="{ display: isStepOnLine(i, line) ? 'block' : 'none' }">{{ stepRomanNumeral(step) }}</text>
         </g>
       </svg>
       <svg width="640" height="100" xmlns="http://www.w3.org/2000/svg">
@@ -69,6 +69,35 @@ export default {
     progression: ChordProgression
   },
   methods: {
+    getTotalBeats() {
+      return this.progression.steps.reduce((total, step) => total + step.beats, 0);
+    },
+    getNumberOfLines() {
+      const totalBeats = this.getTotalBeats();
+      return Math.ceil(totalBeats / 32);
+    },
+    getStepStartBeat(index) {
+      let beat = 0;
+      for (let i = 0; i < index; i++) {
+        beat += this.progression.steps[i].beats;
+      }
+      return beat;
+    },
+    isStepOnLine(stepIndex, line) {
+      const stepStartBeat = this.getStepStartBeat(stepIndex);
+      const stepEndBeat = stepStartBeat + this.progression.steps[stepIndex].beats;
+      const lineStartBeat = (line - 1) * 32;
+      const lineEndBeat = line * 32;
+      
+      // Check if step overlaps with this line
+      return stepStartBeat < lineEndBeat && stepEndBeat > lineStartBeat;
+    },
+    getStepXOnLine(stepIndex, line) {
+      const stepStartBeat = this.getStepStartBeat(stepIndex);
+      const lineStartBeat = (line - 1) * 32;
+      const xOnLine = (stepStartBeat - lineStartBeat) * 20;
+      return Math.max(0, xOnLine);
+    },
     getStepX(index) {
       let x = 0;
       for (let i = 0; i < index; i++) {
