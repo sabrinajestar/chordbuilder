@@ -285,47 +285,47 @@ export class Scale {
 class KeySignature {
     root: Note;
     scale: Scale;
-    useSharpNames: boolean = false;
-    useFlatNames: boolean = false;
+    sharps: number[] = [0,0,0,0,0,0,0];
+    flats: number[] = [0,0,0,0,0,0,0];
 
-    constructor(root: Note, scale: Scale, useSharpNames: boolean = false, useFlatNames: boolean = false) {
+    constructor(root: Note, scale: Scale, sharps: number[] = [], flats: number[] = []) {
         this.root = root;
         this.scale = scale;
-        this.useFlatNames = useFlatNames;
-        this.useSharpNames = useSharpNames;
+        this.sharps = sharps;
+        this.flats = flats;
     }
 
-    static readonly C_Major = new KeySignature(Note.C, Scale.Major, false, false);
-    static readonly A_Minor = new KeySignature(Note.A, Scale.NaturalMinor, false, false);
-    static readonly G_Major = new KeySignature(Note.G, Scale.Major, true, false);
-    static readonly E_Minor = new KeySignature(Note.E, Scale.NaturalMinor, true, false);
-    static readonly D_Major = new KeySignature(Note.D, Scale.Major, true, false);
-    static readonly B_Minor = new KeySignature(Note.B, Scale.NaturalMinor, true, false);
-    static readonly A_Major = new KeySignature(Note.A, Scale.Major, true, false);
-    static readonly FSHARP_Minor = new KeySignature(Note.FSHARP, Scale.NaturalMinor, true, false);
-    static readonly E_Major = new KeySignature(Note.E, Scale.Major, true, false);
-    static readonly CSHARP_Minor = new KeySignature(Note.CSHARP, Scale.NaturalMinor, true, false);
-    static readonly B_Major = new KeySignature(Note.B, Scale.Major, true, false);
-    static readonly GSHARP_Minor = new KeySignature(Note.GSHARP, Scale.NaturalMinor, true, false);
-    static readonly FSHARP_Major = new KeySignature(Note.FSHARP, Scale.Major, true, false);
-    static readonly DSHARP_Minor = new KeySignature(Note.DSHARP, Scale.NaturalMinor, true, false);
-    static readonly CSHARP_Major = new KeySignature(Note.CSHARP, Scale.Major, true, false);
-    static readonly ASHARP_Minor = new KeySignature(Note.ASHARP, Scale.NaturalMinor, true, false);
+    static readonly C_Major = new KeySignature(Note.C, Scale.Major, [0,0,0,0,0,0,0], [0,0,0,0,0,0,0]);
+    static readonly A_Minor = new KeySignature(Note.A, Scale.NaturalMinor, [0,0,0,0,0,0,0], [0,0,0,0,0,0,0]);
+    static readonly G_Major = new KeySignature(Note.G, Scale.Major, [0,0,0,0,0,0,1], [0,0,0,0,0,0,0]);
+    static readonly E_Minor = new KeySignature(Note.E, Scale.NaturalMinor, [0,1,0,0,0,0,0], [0,0,0,0,0,0,0]);
+    static readonly D_Major = new KeySignature(Note.D, Scale.Major, [0,0,1,0,0,0,1], [0,0,0,0,0,0,0]);
+    static readonly B_Minor = new KeySignature(Note.B, Scale.NaturalMinor, [0,1,0,0,1,0,0], [0,0,0,0,0,0,0]);
+    static readonly A_Major = new KeySignature(Note.A, Scale.Major, [0,0,1,0,0,1,1], [0,0,0,0,0,0,0]);
+    static readonly FSHARP_Minor = new KeySignature(Note.FSHARP, Scale.NaturalMinor, [1,1,0,0,1,0,0], [0,0,0,0,0,0,0]);
+    static readonly E_Major = new KeySignature(Note.E, Scale.Major, [0,1,1,0,0,1,1], [0,0,0,0,0,0,0]);
+    static readonly CSHARP_Minor = new KeySignature(Note.CSHARP, Scale.NaturalMinor, [1,1,0,1,1,0,0], [0,0,0,0,0,0,0]);
+    static readonly B_Major = new KeySignature(Note.B, Scale.Major, [0,1,1,1,0,1,1], [0,0,0,0,0,0,0]);
+    static readonly GSHARP_Minor = new KeySignature(Note.GSHARP, Scale.NaturalMinor, [1,1,0,1,1,0,1], [0,0,0,0,0,0,0]);
+    static readonly FSHARP_Major = new KeySignature(Note.FSHARP, Scale.Major, [1,1,1,0,1,1,1], [0,0,0,0,0,0,0]);
+    static readonly DSHARP_Minor = new KeySignature(Note.DSHARP, Scale.NaturalMinor, [1,1,1,1,1,0,1], [0,0,0,0,0,0,0]);
+    static readonly ASHARP_Minor = new KeySignature(Note.ASHARP, Scale.NaturalMinor, [1,0,1,1,0,1,1], [0,0,0,0,0,0,0]);
     
-    static readonly F_Major = new KeySignature(Note.F, Scale.Major, false, true);
-    static readonly D_Minor = new KeySignature(Note.D, Scale.NaturalMinor, false, true);
-    static readonly BFLAT_Major = new KeySignature(Note.ASHARP, Scale.Major, false, true);
-    static readonly G_Minor = new KeySignature(Note.G, Scale.NaturalMinor, false, true);
-    static readonly EFLAT_Major = new KeySignature(Note.DSHARP, Scale.Major, false, true);
-    static readonly C_Minor = new KeySignature(Note.C, Scale.NaturalMinor, false, true);
-    static readonly AFLAT_Major = new KeySignature(Note.GSHARP, Scale.Major, false, true);
-    static readonly F_Minor = new KeySignature(Note.F, Scale.NaturalMinor, false, true);
+    static readonly F_Major = new KeySignature(Note.F, Scale.Major, [0,0,0,0,0,0,0], [0,0,0,1,0,0,0]);
+    static readonly D_Minor = new KeySignature(Note.D, Scale.NaturalMinor, [0,0,0,0,0,0,0], [0,0,0,0,0,1,0]);
+    static readonly BFLAT_Major = new KeySignature(Note.ASHARP, Scale.Major, [0,0,0,0,0,0,0], [1,0,0,1,0,0,0]);
+    static readonly DFLAT_Major = new KeySignature(Note.CSHARP, Scale.Major, [0,0,0,0,0,0,0], [1,1,0,1,1,1,0]);
+    static readonly G_Minor = new KeySignature(Note.G, Scale.NaturalMinor, [0,0,0,0,0,0,0], [0,0,1,0,0,1,0]);
+    static readonly EFLAT_Major = new KeySignature(Note.DSHARP, Scale.Major, [0,0,0,0,0,0,0], [1,1,0,1,1,0,0]);
+    static readonly C_Minor = new KeySignature(Note.C, Scale.NaturalMinor, [0,0,0,0,0,0,0], [0,0,1,0,0,1,1]);
+    static readonly AFLAT_Major = new KeySignature(Note.GSHARP, Scale.Major, [0,0,0,0,0,0,0], [1,1,0,1,1,0,0]);
+    static readonly F_Minor = new KeySignature(Note.F, Scale.NaturalMinor, [0,0,0,0,0,0,0], [0,0,1,1,1,0,1]);
 
     static readonly KeySignatures = [
         KeySignature.C_Major, KeySignature.A_Minor, KeySignature.G_Major, KeySignature.E_Minor,
         KeySignature.D_Major, KeySignature.B_Minor, KeySignature.A_Major, KeySignature.FSHARP_Minor,
         KeySignature.E_Major, KeySignature.CSHARP_Minor, KeySignature.B_Major, KeySignature.GSHARP_Minor,
-        KeySignature.FSHARP_Major, KeySignature.DSHARP_Minor, KeySignature.CSHARP_Major, KeySignature.ASHARP_Minor,
+        KeySignature.FSHARP_Major, KeySignature.DSHARP_Minor, KeySignature.DFLAT_Major, KeySignature.ASHARP_Minor,
         KeySignature.F_Major, KeySignature.D_Minor, KeySignature.BFLAT_Major, KeySignature.G_Minor,
         KeySignature.EFLAT_Major, KeySignature.C_Minor, KeySignature.AFLAT_Major, KeySignature.F_Minor
     ];
@@ -392,13 +392,13 @@ export function buildScale(root: Note, scale: Scale): Note[] {
     let dupeRoot =  cloneNote(root);
     notes.push(dupeRoot);
     var thisNote = dupeRoot;
-    var useFlatNames = false;
-    var useSharpNames = false;
+    var flats = [];
+    var sharps = [];
     for (let signature of KeySignature.KeySignatures) {
         if (signature.root.name === root.name && signature.scale.name === scale.name) {
-            console.log("Using key signature for scale building:", signature.root.name, signature.scale.name, " useFlatNames:", signature.useFlatNames, " useSharpNames:", signature.useSharpNames);
-            useFlatNames = signature.useFlatNames;
-            useSharpNames = signature.useSharpNames;
+            console.log("Using key signature for scale building:", signature.root.name, signature.scale.name, " flats:", signature.flats, " sharps:", signature.sharps);
+            flats = signature.flats;
+            sharps = signature.sharps;
         }
     }
     for (let interval of scale.intervals) {
@@ -407,9 +407,10 @@ export function buildScale(root: Note, scale: Scale): Note[] {
         notes.push(nextNote)
         thisNote = nextNote
     }
-    for (let note of notes) {
-        note.useFlatNames = useFlatNames;
-        note.useSharpNames = useSharpNames;
+    for (let i = 0; i < notes.length; i++) {
+        let note = notes[i];
+        note.useFlatNames = flats[i % flats.length] === 1;
+        note.useSharpNames = sharps[i % sharps.length] === 1;
     }
 
     return notes;
