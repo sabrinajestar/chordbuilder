@@ -159,7 +159,7 @@ export default {
       if (this.currentKey && this.currentScale) {
         this.keyNotes = buildScale(this.currentKey, this.currentScale);
         // this.keyChords = buildScaleTriads(this.currentKey, this.currentScale);
-        this.keyChords = buildScaleSevenths(this.currentKey, this.currentScale);
+        this.keyChords = buildScaleSevenths(this.currentKey, this.currentScale, this.keyNotes);
         console.log('Built scale notes:', JSON.parse(JSON.stringify(this.keyNotes)));
         // console.log('Built scale and triads:', JSON.parse(JSON.stringify(this.keyChords)));
         console.log('Determined related chords:', JSON.parse(JSON.stringify(this.relatedChords)));
