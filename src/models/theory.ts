@@ -118,7 +118,7 @@ export class ChordModification {
         ChordModification.NoFifth, ChordModification.SharpFifth, ChordModification.AddSixth, 
         ChordModification.AddedFlatNinth, ChordModification.AddedNinth, ChordModification.AddedFlatEleventh, 
         ChordModification.AddedEleventh, ChordModification.FirstInversion, ChordModification.SecondInversion, 
-        ChordModification.ThirdInversion        
+        ChordModification.ThirdInversion
     ];
 }
 
@@ -626,6 +626,24 @@ export function applySingleChange(chord: Chord, change: string, interval: Interv
     }
 
     return chord;
+}
+
+export function shiftChord(chord: Chord, numberOfOctaves: number): Chord {
+    let shiftedChord = cloneChord(chord);
+    for (let i = 0; i < shiftedChord.notes.length; i++) {
+        if (shiftedChord.notes[i] !== Note.NullNote) {
+            const noteToShift = shiftedChord.notes[i];
+            const modifiedNote = cloneNote(noteToShift);
+            modifiedNote.octaveIndex += numberOfOctaves;
+            shiftedChord.notes[i] = modifiedNote;
+        }
+    }
+    if (shiftedChord.bassNote) {
+        const modifiedBassNote = cloneNote(shiftedChord.bassNote);
+        modifiedBassNote.octaveIndex += numberOfOctaves;
+        shiftedChord.bassNote = modifiedBassNote;
+    }
+    return shiftedChord;
 }
 
 export function getRomanNumeral(rootName: string | undefined, scaleNotes: Note[]): string {

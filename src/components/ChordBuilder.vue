@@ -43,13 +43,17 @@
           v-for="chordmod in chordMods" :key="chordmod.name">{{ chordmod.notation }}
           </div>
         </v-row>
+        <v-row>
+          <div class="button" @click="shiftChordDown">Shift Chord Down</div>
+          <div class="button" @click="shiftChordUp">Shift Chord Up</div>
+        </v-row>
       </v-container>
     </div>
   </div>
 </template>
 
 <script>
-import { Note, Chord, ChordShape, ChordModification, populateChordNotes, cloneChord, toggleChordModification, applyChordModifications, Step } from '../models/theory.ts';
+import { Note, Chord, ChordShape, ChordModification, populateChordNotes, cloneChord, toggleChordModification, applyChordModifications, Step, shiftChord } from '../models/theory.ts';
 
 export default {
   name: 'ChordBuilder',
@@ -215,6 +219,20 @@ export default {
         this.resetSelections();
         this.$emit('modify-progression', updatedStep);
         // console.log('Added or updated chord to progression:', JSON.parse(JSON.stringify(this.currentStep)));
+      }
+    },
+    shiftChordDown() {
+      if (this.currentChord) {
+        this.currentChord = shiftChord(this.currentChord, -1);
+        console.log('Chord after shifting down:', JSON.parse(JSON.stringify(this.currentChord)));
+        this.$emit('select-chord', this.currentChord);
+      }
+    },
+    shiftChordUp() {
+      if (this.currentChord) {
+        this.currentChord = shiftChord(this.currentChord, 1);
+        console.log('Chord after shifting up:', JSON.parse(JSON.stringify(this.currentChord)));
+        this.$emit('select-chord', this.currentChord);
       }
     }
   }
