@@ -318,12 +318,21 @@ function selectPriorNote(note: Note, interval: Interval): Note {
 
 export function populateChordNotes(root: Note, chord: Chord): Note[] {
     const notes: Note[] = [];
+    // Preserve octave index from existing root note if it exists (e.g., after shifting)
+    if (chord.notes && chord.notes[0] && chord.notes[0] !== Note.NullNote) {
+        root.octaveIndex = chord.notes[0].octaveIndex;
+    }
     notes.push(root);
     chord.rootNote = root;
     var thisNote = root;
-    for (let interval of chord.intervals) {
+    for (let i = 0; i < chord.intervals.length; i++) {
+        var interval = chord.intervals[i];
         var nextNote = selectNextNote(thisNote, interval)
         console.log("Populating chord notes, current note:", thisNote.name, " next note:", nextNote.name, " interval:", interval.name);
+        // Preserve octave index from existing chord notes if they exist (e.g., after shifting)
+        if (chord.notes && chord.notes[i] && chord.notes[i] !== Note.NullNote) {
+            nextNote.octaveIndex = chord.notes[i].octaveIndex;
+        }
         notes.push(nextNote)
         thisNote = nextNote
     }

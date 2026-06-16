@@ -112,13 +112,16 @@ export default {
       }
     },
     chordIn(newChord) {
-      this.currentRoot = newChord?.rootNote || newChord?.notes?.[0] || null;
-      this.currentShape = newChord?.shape || null;
-      this.currentChord = newChord || null;
-      this.chordNotes = newChord?.notes || null;
+      this.newChord(newChord);
     }
   },
   methods: {
+    newChord(chord) {
+      this.currentRoot = chord?.rootNote || chord?.notes?.[0] || null;
+      this.currentShape = chord?.shape || null;
+      this.currentChord = chord || null;
+      this.chordNotes = chord?.notes || null;
+    },
     handleChordRootChange() {
       if (this.selectedRootIndex === '') {
         this.currentRoot = null;
@@ -223,16 +226,18 @@ export default {
     },
     shiftChordDown() {
       if (this.currentChord) {
-        this.currentChord = shiftChord(this.currentChord, -1);
-        console.log('Chord after shifting down:', JSON.parse(JSON.stringify(this.currentChord)));
-        this.$emit('select-chord', this.currentChord);
+        let shiftedChord = shiftChord(this.currentChord, -1);
+        console.log('Chord after shifting down:', JSON.parse(JSON.stringify(shiftedChord)));
+        this.$emit('select-chord', shiftedChord);
+        this.newChord(shiftedChord);
       }
     },
     shiftChordUp() {
       if (this.currentChord) {
-        this.currentChord = shiftChord(this.currentChord, 1);
-        console.log('Chord after shifting up:', JSON.parse(JSON.stringify(this.currentChord)));
-        this.$emit('select-chord', this.currentChord);
+        let shiftedChord = shiftChord(this.currentChord, 1);
+        console.log('Chord after shifting up:', JSON.parse(JSON.stringify(shiftedChord)));
+        this.$emit('select-chord', shiftedChord);
+        this.newChord(shiftedChord);
       }
     }
   }
