@@ -1,8 +1,8 @@
 <template>
   <div id="keypicker">
     Select a Key:
-    <select class="app-select" id="key-select" @change="selectKey(notes[$event.target.selectedIndex])">
-      <option v-for="note in notes" :key="note.index" :value="note.index" :selected="note.index === 0">
+    <select class="app-select" id="key-select" v-model="currentTonicName" @change="handleKeyChange">
+      <option v-for="note in notes" :key="note.index" :value="note.name">
         {{ note.displayName || note.name }}
       </option>
     </select>
@@ -15,25 +15,48 @@ import { Note } from '../models/theory.ts';
 export default {
   name: 'KeyPicker',
   props: {
-    msg: String
+    msg: String,
+    keyIn: Note
   },
   data() {
     return { 
       notes: Note.Notes,
-      currentTonic: null
+      currentTonic: null,
+      currentTonicName: ''
     };
   },
+  watch: {
+    keyIn(newKey) {
+      console.log('KeyPicker received new keyIn prop:', newKey);
+      if (!newKey) {
+        return;
+      }
+      this.selectKey(newKey);
+    }
+  },
   methods: {
+    handleKeyChange() {
+      const selectedNote = this.notes.find(note => note.name === this.currentTonicName);
+      if (!selectedNote) {
+        return;
+      }
+      this.selectKey(selectedNote);
+    },
     selectKey(note) {
+      if (!note) {
+        return;
+      }
       // console.log('In KeyPicker, selectKey called with note:', note.name);
       this.$emit('select-key', note);
       this.currentTonic = note;
+      this.currentTonicName = note.name;
+      console.log('KeyPicker name of selected key:', this.currentTonicName);
       // eslint-disable-next-line no-console
       // console.log('Selected key:', JSON.parse(JSON.stringify(this.currentTonic)));
     }
   },
   mounted() {
-    this.selectKey(Note.C);
+    this.selectKey(this.keyIn || Note.C);
     // eslint-disable-next-line no-console
     // console.log('Initial current Tonic at mount:', this.currentTonic);
   }

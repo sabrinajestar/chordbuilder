@@ -121,6 +121,8 @@ export default {
       this.currentShape = chord?.shape || null;
       this.currentChord = chord || null;
       this.chordNotes = chord?.notes || null;
+      this.selectedRootIndex = this.currentRoot ? String(this.currentRoot.index) : '';
+      this.selectedShapeName = this.currentShape ? this.currentShape.name : '';
     },
     handleChordRootChange() {
       if (this.selectedRootIndex === '') {

@@ -51,7 +51,7 @@
         <v-col cols="5">
           <v-row>
             <v-col cols="5">
-              <KeyPicker @select-key="handleKeySelection"></KeyPicker>
+              <KeyPicker @select-key="handleKeySelection" :key-in="currentKey"></KeyPicker>
             </v-col>
             <v-col cols="7">
               <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>

@@ -328,7 +328,7 @@ export function populateChordNotes(root: Note, chord: Chord): Note[] {
     for (let i = 0; i < chord.intervals.length; i++) {
         var interval = chord.intervals[i];
         var nextNote = selectNextNote(thisNote, interval)
-        console.log("Populating chord notes, current note:", thisNote.name, " next note:", nextNote.name, " interval:", interval.name);
+        // console.log("Populating chord notes, current note:", thisNote.name, " next note:", nextNote.name, " interval:", interval.name);
         // Preserve octave index from existing chord notes if they exist (e.g., after shifting)
         if (chord.notes && chord.notes[i] && chord.notes[i] !== Note.NullNote) {
             nextNote.octaveIndex = chord.notes[i].octaveIndex;
@@ -347,7 +347,7 @@ export function buildScale(root: Note, scale: Scale): Note[] {
     var thisNote = dupeRoot;
     for (let interval of scale.intervals) {
         var nextNote = selectNextNote(thisNote, interval)
-        console.log("Building scale, current note:", thisNote.name, " next note:", nextNote.name, " interval:", interval.name);
+        // console.log("Building scale, current note:", thisNote.name, " next note:", nextNote.name, " interval:", interval.name);
         notes.push(nextNote)
         thisNote = nextNote
     }
