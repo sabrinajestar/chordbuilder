@@ -1,14 +1,21 @@
 <template>
   <div id="app">
     <v-container>
-      <v-row>
-        <v-col cols="2">
+      <v-row align="center">
+        <v-col cols="2" class="d-flex align-items-center">
           <TonePlayer :chordNotes="chordNotes"></TonePlayer>
         </v-col>
-        <v-col>
+        <v-col cols="2" class="d-flex align-items-center">
+          <KeyPicker @select-key="handleKeySelection" :key-in="currentKey"></KeyPicker>
+        </v-col>
+        <v-col cols="4" class="d-flex align-items-center">
+            <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
+        </v-col>
+        <v-col cols="12">
           <div>
-            <p>Current Key & Scale: {{ currentKey && currentScale ? (currentKey.displayName || currentKey.name) + ' ' + currentScale.name : 'No key or scale selected' }}</p></div>
+            <p>Current Key & Scale: {{ currentKey && currentScale ? (currentKey.displayName || currentKey.name) + ' ' + currentScale.name : 'No key or scale selected' }}</p>
             <p>Cycle of Fifths: <span v-for="note in cycleOfFifths" :key="`fifths-${note.name}`"><a href="#" v-on:click="handleKeySelection(note)">{{ note.displayName || note.name }}</a> &nbsp;</span></p>
+          </div>
           <table>
             <tbody>
               <tr>
@@ -18,6 +25,7 @@
                 <th>Deceptive Resolution</th>
                 <th>Substitute Dominant Cadence</th>
                 <th>Tritone Substitutes</th>
+                <th>Chromatic Mediants</th>
               </tr>
               <tr v-for="chord in keyChords" :key="chord.notation" :style="{ backgroundColor: this.fillBasedOnChordFunction(chord) }">
                 <td>{{ chord.romanNumeral(this.keyNotes) }}</td>
@@ -26,6 +34,7 @@
                 <td><p v-if="chord.relatedChords"><a href="#" v-on:click="handleChordSelection(chord.relatedChords.deceptiveResolutionChord)">{{ chord.relatedChords.deceptiveResolutionChord.notation + " (VI/" + this.getRomanNumeral(chord.relatedChords.targetChordIndex) + ")" }}</a></p></td>
                 <td><p v-if="chord.relatedChords"><a href="#" v-on:click="handleChordSelection(chord.relatedChords.subVRelatedIIChord)">{{ chord.relatedChords.subVRelatedIIChord.notation }}</a> -> <a href="#" v-on:click="handleChordSelection(chord.relatedChords.substituteDominantChord)">{{ chord.relatedChords.substituteDominantChord.notation + " (subV/" + this.getRomanNumeral(chord.relatedChords.targetChordIndex) + ")" }}</a></p></td>
                 <td><p v-if="chord.relatedChords && chord.relatedChords.tritoneSubstituteChord"><a href="#" v-on:click="handleChordSelection(chord.relatedChords.tritoneSubstituteChord)">{{ chord.relatedChords.tritoneSubstituteChord.notation }}</a></p></td>
+                <td><p v-if="chord.relatedChords && chord.relatedChords.chromaticMediantChord"><a href="#" v-on:click="handleChordSelection(chord.relatedChords.chromaticMediantChord)">{{ chord.relatedChords.chromaticMediantChord.notation }}</a></p></td>
               </tr>
             </tbody>
           </table>
@@ -49,14 +58,14 @@
           </v-row>
         </v-col>
         <v-col cols="5">
-          <v-row>
+          <!-- <v-row>
             <v-col cols="5">
-              <KeyPicker @select-key="handleKeySelection" :key-in="currentKey"></KeyPicker>
+              
             </v-col>
             <v-col cols="7">
               <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
             </v-col>
-          </v-row>
+          </v-row> -->
           <v-row>
             <v-divider :thickness="4" ></v-divider>
           </v-row>

@@ -139,33 +139,37 @@ export class ChordShape {
     static readonly AugmentedTriad = new ChordShape("augmented", [Interval.MajorThird, Interval.MajorThird], "+");
     static readonly MajorSeventhChord = new ChordShape("major seventh", [Interval.MajorThird, Interval.MinorThird, Interval.MajorThird], "Δ7");
     static readonly MinorSeventhChord = new ChordShape("minor seventh", [Interval.MinorThird, Interval.MajorThird, Interval.MinorThird], "-7");
+    static readonly MinorMajorSeventhChord = new ChordShape("minor-major seventh", [Interval.MinorThird, Interval.MajorThird, Interval.MajorThird], "-Δ7");
+    static readonly MajorSeventhSharp5Chord = new ChordShape("major seventh sharp-5", [Interval.MajorThird, Interval.MajorThird, Interval.MinorThird], "Δ7♯5");
     static readonly DominantSeventhChord = new ChordShape("dominant seventh", [Interval.MajorThird, Interval.MinorThird, Interval.MinorThird], "7");
-    static readonly HalfDiminishedSeventhChord = new ChordShape("half-diminished seventh", [Interval.MinorThird, Interval.MinorThird, Interval.MajorThird], "ø7");
+    static readonly HalfDiminishedSeventhChord = new ChordShape("minor seventh flat-5", [Interval.MinorThird, Interval.MinorThird, Interval.MajorThird], "-7♭5");
     static readonly DiminishedSeventhChord = new ChordShape("diminished seventh", [Interval.MinorThird, Interval.MinorThird, Interval.MinorThird], "°7");
     static readonly ChordShapes = [
         ChordShape.MajorTriad, ChordShape.MinorTriad, ChordShape.DiminishedTriad, ChordShape.AugmentedTriad,
-        ChordShape.MajorSeventhChord, ChordShape.MinorSeventhChord, ChordShape.DominantSeventhChord, 
-        ChordShape.HalfDiminishedSeventhChord, ChordShape.DiminishedSeventhChord
+        ChordShape.MajorSeventhChord, ChordShape.MinorSeventhChord, ChordShape.MinorMajorSeventhChord, ChordShape.MajorSeventhSharp5Chord,
+        ChordShape.DominantSeventhChord, ChordShape.HalfDiminishedSeventhChord, ChordShape.DiminishedSeventhChord
     ];
 }
 
 export class RelatedChords {
-    secondaryDominantChord: Chord;
     targetChordIndex: number;
+    secondaryDominantChord?: Chord;
     relatedIIChord?: Chord;
     deceptiveResolutionChord?: Chord;
     substituteDominantChord?: Chord;
     subVRelatedIIChord?: Chord;
     tritoneSubstituteChord?: Chord;
+    chromaticMediantChord?: Chord;
 
-    constructor(secondaryDominantChord: Chord, targetChordIndex: number, relatedIIChord?: Chord, deceptiveResolutionChord?: Chord, substituteDominantChord?: Chord, subVRelatedIIChord?: Chord, tritoneSubstituteChord?: Chord) {
-        this.secondaryDominantChord = secondaryDominantChord;
+    constructor(targetChordIndex: number, secondaryDominantChord: Chord, relatedIIChord?: Chord, deceptiveResolutionChord?: Chord, substituteDominantChord?: Chord, subVRelatedIIChord?: Chord, tritoneSubstituteChord?: Chord, chromaticMediantChord?: Chord) {
         this.targetChordIndex = targetChordIndex;
+        this.secondaryDominantChord = secondaryDominantChord;
         this.relatedIIChord = relatedIIChord;
         this.deceptiveResolutionChord = deceptiveResolutionChord;
         this.substituteDominantChord = substituteDominantChord;
         this.subVRelatedIIChord = subVRelatedIIChord;
         this.tritoneSubstituteChord = tritoneSubstituteChord;
+        this.chromaticMediantChord = chromaticMediantChord;
     }
 }
 
@@ -744,29 +748,16 @@ export function getRelatedChordsForChord(chord: Chord, targetIndex: number): Rel
         const subVRelatedIIChord = new Chord(selectPriorNote(substituteDominantChord.rootNote, Interval.MinorSecond), ChordShape.MinorSeventhChord);
         subVRelatedIIChord.notes = populateChordNotes(subVRelatedIIChord.rootNote, subVRelatedIIChord);
         let tritoneSubstituteChord: Chord = null;
+        let chromaticMediantChord: Chord = null;
         if (chord.shape.name === "dominant seventh") {
             tritoneSubstituteChord = new Chord(selectPriorNote(targetNote, Interval.DiminishedFifth), ChordShape.DominantSeventhChord);
             tritoneSubstituteChord.notes = populateChordNotes(tritoneSubstituteChord.rootNote, tritoneSubstituteChord);
         }
-        return new RelatedChords(dominantChord, targetIndex, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord, tritoneSubstituteChord);
-}
-
-export function determineSecondaryDominantsForScale(scaleNotes: Note[]): RelatedChords[] {
-    const relatedChords: RelatedChords[] = [];
-
-    // we will skip tonic and seventh as these are not typically targets of secondary dominants
-    for (let i = 0; i < scaleNotes.length - 3; i++) {
-        const targetNote = scaleNotes[(i + 1) % scaleNotes.length];
-        const dominantChord = new Chord(selectNextNote(targetNote, Interval.PerfectFifth), ChordShape.DominantSeventhChord);
-        const relatedIIChord = new Chord(selectNextNote(targetNote, Interval.MajorSecond), ChordShape.MinorSeventhChord);
-        const deceptiveResolutionChord = new Chord(selectNextNote(targetNote, Interval.MajorSixth), ChordShape.MajorSeventhChord);
-        const substituteDominantChord = new Chord(selectPriorNote(targetNote, Interval.MinorSecond), ChordShape.DominantSeventhChord);
-        const subVRelatedIIChord = new Chord(selectPriorNote(substituteDominantChord.rootNote, Interval.MinorSecond), ChordShape.MinorSeventhChord);
-        // dominantChord.notes = populateChordNotes(dominantChord.rootNote, dominantChord);
-        relatedChords.push(new RelatedChords(dominantChord, i, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord));
-    }
-
-    return relatedChords;
+        if (targetIndex == 2 || targetIndex == 5) {
+            chromaticMediantChord = new Chord(selectPriorNote(targetNote, Interval.MinorSecond), ChordShape.MajorSeventhChord);
+            chromaticMediantChord.notes = populateChordNotes(chromaticMediantChord.rootNote, chromaticMediantChord);
+        }
+        return new RelatedChords(targetIndex, dominantChord, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord, tritoneSubstituteChord, chromaticMediantChord);
 }
 
 export function fillBasedOnChordFunction(chord: Chord, keyRoot: Note, keyScale: Scale): string {
