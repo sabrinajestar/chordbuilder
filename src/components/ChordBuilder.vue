@@ -170,6 +170,9 @@ export default {
     selectChordRoot(note) {
       this.currentRoot = note;
       this.selectedRootIndex = String(note.index);
+      if (this.currentShape) {
+        this.currentChord = new Chord(this.currentRoot, this.currentShape);
+      }
       // eslint-disable-next-line no-console
       // console.log('Selected chord root:', JSON.parse(JSON.stringify(note)));
       this.setChordNotes();
@@ -177,7 +180,9 @@ export default {
     selectShape(shape) {
       this.currentShape = shape;
       this.selectedShapeName = shape.name;
-      this.currentChord = new Chord(this.currentRoot, shape);
+      if (this.currentRoot) {
+        this.currentChord = new Chord(this.currentRoot, shape);
+      }
       // eslint-disable-next-line no-console
       // console.log('Selected base chord:', JSON.parse(JSON.stringify(shape)));
       this.setChordNotes();
