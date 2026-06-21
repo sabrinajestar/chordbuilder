@@ -38,6 +38,9 @@
               </tr>
             </tbody>
           </table>
+          <div>
+            <p>Other Chromatics: <span v-for="chord in otherChromaticChords" :key="chord.notation"><a href="#" v-on:click="handleChordSelection(chord)">{{ chord.notation + " (" + chord.romanNumeral(this.keyNotes) + ")" }}</a> &nbsp;</span></p>
+          </div>
         </v-col>
       </v-row>
       <v-row>
@@ -58,17 +61,6 @@
           </v-row>
         </v-col>
         <v-col cols="5">
-          <!-- <v-row>
-            <v-col cols="5">
-              
-            </v-col>
-            <v-col cols="7">
-              <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
-            </v-col>
-          </v-row> -->
-          <v-row>
-            <v-divider :thickness="4" ></v-divider>
-          </v-row>
           <v-row>
             <ChordBuilder @select-chord="handleChordSelection"
               :chordIn="currentChord"
@@ -94,6 +86,7 @@ import TonePlayer from './components/TonePlayer.vue';
 import { buildScale, buildScaleSevenths, ChordProgression, Step, cloneChord, Note,
   romanNumerals as theoryRomanNumerals,
   analyzeChordFunctionByRoman as theoryAnalyzeChordFunctionByRoman,
+  populateOtherChromaticChords as theoryPopulateOtherChromaticChords,
   fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from './models/theory';
 
 export default {
@@ -118,6 +111,7 @@ export default {
       currentStepIndex: null,
       relatedChords: null,
       chordProgression: new ChordProgression(),
+      otherChromaticChords: [],
       play: null,
       cycleOfFifths: [Note.C, Note.G, Note.D, Note.A, Note.E, Note.B, Note.FSHARP, Note.CSHARP, Note.GSHARP, Note.DSHARP, Note.ASHARP, Note.F],
     };
@@ -156,6 +150,7 @@ export default {
       this.currentKey = note;
       this.buildScaleAndTriads();
       this.chordNotes = null; // Reset chord notes on key change
+      this.otherChromaticChords = theoryPopulateOtherChromaticChords(this.currentKey, this.currentScale);
     },
     handleScaleSelection(scale) {
       // console.log('Selected scale in App:', JSON.parse(JSON.stringify(scale)));

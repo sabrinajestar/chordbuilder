@@ -760,6 +760,22 @@ export function getRelatedChordsForChord(chord: Chord, targetIndex: number): Rel
         return new RelatedChords(targetIndex, dominantChord, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord, tritoneSubstituteChord, chromaticMediantChord);
 }
 
+export function populateOtherChromaticChords(keyRoot: Note): Chord[] {
+    let chords: Chord[] = [];
+    const flatSeventhChord = new Chord(selectPriorNote(keyRoot, Interval.MajorSecond), ChordShape.MajorSeventhChord);
+    flatSeventhChord.notes = populateChordNotes(flatSeventhChord.rootNote, flatSeventhChord);
+    chords.push(flatSeventhChord);
+
+    const flatSixthChord = new Chord(selectPriorNote(keyRoot, Interval.MajorThird), ChordShape.MajorSeventhChord);
+    flatSixthChord.notes = populateChordNotes(flatSixthChord.rootNote, flatSixthChord);
+    chords.push(flatSixthChord);
+
+    const flatSecondChord = new Chord(selectNextNote(keyRoot, Interval.MinorSecond), ChordShape.MajorSeventhChord);
+    flatSecondChord.notes = populateChordNotes(flatSecondChord.rootNote, flatSecondChord);
+    chords.push(flatSecondChord);
+    return chords;
+}
+
 export function fillBasedOnChordFunction(chord: Chord, keyRoot: Note, keyScale: Scale): string {
     console.log("Determining fill color for chord:", chord.notation, " in key of:", keyRoot.name, " ", keyScale.name);
     const keyNotes = buildScale(keyRoot, keyScale);
