@@ -322,21 +322,20 @@ function selectPriorNote(note: Note, interval: Interval): Note {
 
 export function populateChordNotes(root: Note, chord: Chord): Note[] {
     const notes: Note[] = [];
-    // Preserve octave index from existing root note if it exists (e.g., after shifting)
-    if (chord.notes && chord.notes[0] && chord.notes[0] !== Note.NullNote) {
-        root.octaveIndex = chord.notes[0].octaveIndex;
+    const rootNote = cloneNote(root);
+    // Preserve octave from the logical root note first (important when inversions move notes[0])
+    if (chord.rootNote && chord.rootNote !== Note.NullNote) {
+        rootNote.octaveIndex = chord.rootNote.octaveIndex;
+    } else if (chord.notes && chord.notes[0] && chord.notes[0] !== Note.NullNote) {
+        rootNote.octaveIndex = chord.notes[0].octaveIndex;
     }
-    notes.push(root);
-    chord.rootNote = root;
-    var thisNote = root;
+    notes.push(rootNote);
+    chord.rootNote = rootNote;
+    var thisNote = rootNote;
     for (let i = 0; i < chord.intervals.length; i++) {
         var interval = chord.intervals[i];
         var nextNote = selectNextNote(thisNote, interval)
         // console.log("Populating chord notes, current note:", thisNote.name, " next note:", nextNote.name, " interval:", interval.name);
-        // Preserve octave index from existing chord notes if they exist (e.g., after shifting)
-        if (chord.notes && chord.notes[i] && chord.notes[i] !== Note.NullNote) {
-            nextNote.octaveIndex = chord.notes[i].octaveIndex;
-        }
         notes.push(nextNote)
         thisNote = nextNote
     }
@@ -523,10 +522,12 @@ export function cloneNote(note: Note): Note {
 }
 
 export function cloneChord(chord: Chord): Chord {
-    let newChord = new Chord(chord.rootNote!, chord.shape, chord.notes.slice());
+    const root = chord.rootNote ? cloneNote(chord.rootNote) : null;
+    const clonedNotes = chord.notes ? chord.notes.map(note => note === Note.NullNote ? Note.NullNote : cloneNote(note)) : [];
+    let newChord = new Chord(root!, chord.shape, clonedNotes);
     newChord.modifications = chord.modifications.slice();
-    newChord.bassNote = chord.bassNote;
-    newChord.rootNote = chord.rootNote;
+    newChord.bassNote = chord.bassNote ? cloneNote(chord.bassNote) : undefined;
+    newChord.rootNote = root || (clonedNotes.length > 0 && clonedNotes[0] !== Note.NullNote ? cloneNote(clonedNotes[0]) : undefined);
     return newChord;
 }
 
@@ -568,6 +569,9 @@ export function applySingleChange(chord: Chord, change: string, interval: Interv
     const changeParts = change.split(":");
     const action = changeParts[1];
     let target = parseInt(changeParts[0]);
+    const chordRoot = chord.rootNote && chord.rootNote !== Note.NullNote
+        ? chord.rootNote
+        : (chord.notes && chord.notes[0] && chord.notes[0] !== Note.NullNote ? chord.notes[0] : null);
     // console.log("Applying modification action:", action, "on target index:", target, " note:", chord.notes[target - 1]);
 
     switch (action) {
@@ -585,19 +589,19 @@ export function applySingleChange(chord: Chord, change: string, interval: Interv
             break;
         case "new-note":
             if (chord.notes) {
-                const newNote = selectNextNote(chord.rootNote, interval);
+                const newNote = selectNextNote(chordRoot, interval);
                 chord.notes.push(newNote);
             }
             break;
         case "replace-note":
             if (chord.notes && target - 1 < chord.notes.length) {
-                const newNote = selectNextNote(chord.rootNote, interval);
+                const newNote = selectNextNote(chordRoot, interval);
                 chord.notes[target - 1] = newNote;
             }
             break;
         case "new-note-plus-octave":
             if (chord.notes) {
-                let newNote = selectNextNote(chord.rootNote, interval);
+                let newNote = selectNextNote(chordRoot, interval);
                 newNote = cloneNote(newNote);
                 newNote.octaveIndex += 1;
                 chord.notes.push(newNote);
@@ -650,6 +654,13 @@ export function shiftChord(chord: Chord, numberOfOctaves: number): Chord {
             modifiedNote.octaveIndex += numberOfOctaves;
             shiftedChord.notes[i] = modifiedNote;
         }
+    }
+    if (shiftedChord.rootNote) {
+        const shiftedRoot = cloneNote(shiftedChord.rootNote);
+        shiftedRoot.octaveIndex += numberOfOctaves;
+        shiftedChord.rootNote = shiftedRoot;
+    } else if (shiftedChord.notes.length > 0 && shiftedChord.notes[0] !== Note.NullNote) {
+        shiftedChord.rootNote = cloneNote(shiftedChord.notes[0]);
     }
     if (shiftedChord.bassNote) {
         const modifiedBassNote = cloneNote(shiftedChord.bassNote);
