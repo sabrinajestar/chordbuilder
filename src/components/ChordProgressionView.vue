@@ -52,6 +52,14 @@
           </g>
           <title>Clear The Progression</title>
         </a>
+        <a @click="exportToMIDI">
+          <!-- based on https://icons.getbootstrap.com/icons/file-earmark-arrow-down/ -->
+          <g transform="translate(265, 3) scale(1.875)">
+            <path d="M8.5 6.5a.5.5 0 0 0-1 0v3.793L6.354 9.146a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 10.293z"/>
+            <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
+          </g>
+          <title>Export To MIDI</title>
+        </a>
       </svg>
       <p>Color codes:</p>
       <ul>
@@ -68,7 +76,7 @@
 </template>
 
 <script>
-import { ChordProgression, buildScale, fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from '../models/theory.ts';
+import { ChordProgression, buildScale, Note, fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from '../models/theory.ts';
 // import { setTimeout as delay } from 'timers/promises';
 
 export default {
@@ -172,6 +180,45 @@ export default {
     deleteAll() {
       console.log('Emit delete all steps event');
       this.$emit('delete-all-steps');
+    },
+    exportToMIDI() {
+      console.log('Begin export to MIDI process');
+      const MidiWriter = require('midi-writer-js');
+      const track = new MidiWriter.Track();
+      track.setTempo(120);
+      this.progression.steps.forEach(step => {
+        const chordNotes = step.chord.notes.filter(note => note !== Note.NullNote).map(note => note.name + note.octaveIndex);
+        const duration = 'T' + (step.beats * 128); // Convert beats to ticks (assuming 128 ticks per beat)
+        console.log('Adding step to MIDI track:', chordNotes, 'with duration:', duration);
+        const chordEvent = new MidiWriter.NoteEvent({pitch: chordNotes, duration: duration});
+        console.log('Created MIDI event:', chordEvent);
+        track.addEvent(chordEvent);
+      });
+      const write = new MidiWriter.Writer(track);
+      const midiData = write.buildFile();
+      console.log('MIDI data:', midiData);
+
+      const saveFile = async (blob) => {
+        try {
+          const handle = await window.showSaveFilePicker({
+            types: [{
+              accept: {
+                'audio/midi': ['.midi', '.mid']
+              },
+            }],
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          return handle;
+        } catch (err) {
+          console.error(err.name, err.message);
+        }
+      };
+
+      const blob = new Blob([midiData], { type: 'audio/midi' });
+      saveFile(blob);
+      console.log('Export to MIDI process completed');
     }
   }
 }
