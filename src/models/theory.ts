@@ -241,6 +241,16 @@ export class Chord {
         }
         return notations.join("");
     }
+
+    rolandChordDesigner(): string {
+        let notations = [];
+        let rootIndex = this.rootNote ? this.rootNote.index : (this.notes.length > 0 ? this.notes[0].index : -1);
+        for (let note of this.notes) {
+            let relativeIndex = (note.index - rootIndex + 12) % 12;
+            notations.push(relativeIndex);
+        }
+        return notations.join("-");
+    }
 }
 
 export class Step {
@@ -248,13 +258,15 @@ export class Step {
     chord: Chord;
     keyRoot?: Note;
     keyScale?: Scale;
+    majorScale?: Scale;
     index?: number;
 
-    constructor(beats: number, chord: Chord, keyRoot?: Note, keyScale?: Scale, index?: number) {
+    constructor(beats: number, chord: Chord, index?: number, keyRoot?: Note, keyScale?: Scale, majorScale?: Scale) {
         this.beats = beats;
         this.chord = chord;
         this.keyRoot = keyRoot;
         this.keyScale = keyScale;
+        this.majorScale = majorScale;
         this.index = index;
     }
 }
@@ -410,6 +422,19 @@ function selectIntervalBySteps(steps: number): Interval | null {
         }
     }
     return null;
+}
+
+export function buildScaleNotes(root: Note, scale: Scale): Note[] {
+    const notes: Note[] = [];
+    let dupeRoot =  cloneNote(Note.Notes.filter(note => note.name != null).find(note => note.name === root.name));
+    notes.push(dupeRoot);
+    var thisNote = dupeRoot;
+    for (let interval of scale.intervals) {
+        var nextNote = selectNextNote(thisNote, interval)
+        notes.push(nextNote)
+        thisNote = nextNote
+    }
+    return notes;
 }
 
 export function buildScaleTriads(root: Note, scale: Scale): Chord[] {
@@ -700,6 +725,12 @@ export function getRomanNumeralChromatic(rootName: string, scaleNotes: Note[]): 
     const closestScaleNote = scaleNotes[closestScaleNoteIndex];
     const accidental = rootIndex < Note.Notes.findIndex(note => note.name === closestScaleNote.name || note.sharpName === closestScaleNote.name || note.flatName === closestScaleNote.name) ? "♭" : "♯";
     return accidental + romanNumerals[closestScaleNoteIndex % romanNumerals.length];
+}
+
+export function getRomanNumeralMajorReferential(rootName: string): string {
+    const notes: Note[] = [];
+    let dupeRoot =  cloneNote(Note.Notes.filter(note => note.name != null).find(note => note.name === rootName));
+    return getRomanNumeralChromatic(rootName, buildScaleNotes(dupeRoot, Scale.Major));
 }
 
 export function analyzeChordDiatonicity(chord: Chord, keyNotes: Note[]): string {

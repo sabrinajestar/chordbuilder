@@ -4,7 +4,7 @@
     <div>
       <v-container>
         <v-row>
-          <div>{{ currentChord ? currentChord.notation : 'Choose Chord Root, Shape, and number of beats' }}</div>
+          <div>{{ currentChord ? currentChord.notation + " " + currentChord.rolandChordDesigner() : 'Choose Chord Root, Shape, and number of beats' }}</div>
         </v-row>
         <v-row>
           <div class="button" @click="resetSelections">Reset Chord</div>

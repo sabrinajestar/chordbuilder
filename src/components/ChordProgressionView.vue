@@ -12,7 +12,9 @@
         </g>
         <g>
           <rect v-for="(step, i) in progression.steps" :key="`step-${i}`" :x="getStepXOnLine(i, line)" y="0" :width="step.beats * 20" height="50" :fill="fillBasedOnChordFunction(step.chord, step.keyRoot, step.keyScale)" stroke="gray" stroke-width="1" :style="{ display: isStepOnLine(i, line) ? 'block' : 'none' }"/>
-          <text v-for="(step, i) in progression.steps" :key="`key-${line}-${i}`" :id="`progression-step-${i}-key`" :x="getStepXOnLine(i, line) + (step.beats * 20) / 2" y="10" text-anchor="middle" dominant-baseline="text-top" font-size="11" :style="{ display: isStepOnLine(i, line) ? 'block' : 'none' }">{{ displayKey(i, step.keyRoot, step.keyScale) }}</text>
+          <foreignObject v-for="(step, i) in progression.steps" :key="`key-${line}-${i}`" :x="getStepXOnLine(i, line)" y="0" :width="step.beats * 20" height="20" :style="{ display: isStepOnLine(i, line) ? 'block' : 'none' }">
+            <div xmlns="http://www.w3.org/1999/xhtml" :id="`progression-step-${i}-key`" style="font-size:11px; text-align:center; word-wrap:break-word; overflow-wrap:break-word; width:100%; height:100%;">{{ displayKey(i, step.keyRoot, step.keyScale) }}</div>
+          </foreignObject>
           <text v-for="(step, i) in progression.steps" :key="`text-${line}-${i}`" :id="`progression-step-${i}`" v-on:click="selectStep(i)" :x="getStepXOnLine(i, line) + (step.beats * 20) / 2" y="30" text-anchor="middle" dominant-baseline="middle" font-size="14" style="cursor: grab;" :style="{ display: isStepOnLine(i, line) ? 'block' : 'none' }">{{ stepRomanNumeral(step) }}</text>
         </g>
       </svg>
@@ -76,7 +78,8 @@
 </template>
 
 <script>
-import { ChordProgression, buildScale, Note, fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from '../models/theory.ts';
+import { ChordProgression, buildScale, Note, Scale,
+  fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from '../models/theory.ts';
 // import { setTimeout as delay } from 'timers/promises';
 
 export default {
@@ -134,8 +137,15 @@ export default {
       if (!step.keyRoot || !step.keyScale) {
         return step.chord.notation;
       }
-      const stepScaleNotes = buildScale(step.keyRoot, step.keyScale);
-      return step.chord.romanNumeral(stepScaleNotes);
+      if (step.majorScale) {
+        const majorScaleNotes = buildScale(step.keyRoot, Scale.Major);
+        // return getRomanNumeralChromatic(step.chord.rootNote.name, majorScaleNotes);
+        return step.chord.romanNumeral(majorScaleNotes);
+      }
+      
+      // return getRomanNumeralMajorReferential(step.keyRoot);
+      // const stepScaleNotes = buildScale(step.keyRoot, step.keySca"le);
+      // return step.chord.romanNumeral(stepScaleNotes);"
     },
     play() {
       console.log('Emit play event');
@@ -170,7 +180,7 @@ export default {
     },
     displayKey(index, keyRoot, keyScale) {
       if (!keyRoot || !keyScale) return '';
-      if (index === 0 || keyRoot != this.progression.steps[index-1].keyRoot) {
+      if (index === 0 || keyRoot != this.progression.steps[index-1].keyRoot || keyScale != this.progression.steps[index-1].keyScale) {
         console.log('Displaying key for step', index, ':', keyRoot.name, keyScale.name);
         return (keyRoot.displayName || keyRoot.name) + ' ' + keyScale.name;
       } else {

@@ -28,7 +28,7 @@
                 <th>Chromatic Mediants</th>
               </tr>
               <tr v-for="chord in keyChords" :key="chord.notation" :style="{ backgroundColor: this.fillBasedOnChordFunction(chord) }">
-                <td>{{ chord.romanNumeral(this.keyNotes) }}</td>
+                <td>{{ chord.romanNumeral(this.majorScale) }}</td>
                 <td><a href="#" v-on:click="handleChordSelection(chord)">{{ chord.notation }}</a></td>
                 <td><p v-if="chord.relatedChords"><a href="#" v-on:click="handleChordSelection(chord.relatedChords.relatedIIChord)">{{ chord.relatedChords.relatedIIChord.notation }}</a> -> <a href="#" v-on:click="handleChordSelection(chord.relatedChords.secondaryDominantChord)">{{chord.relatedChords.secondaryDominantChord.notation + " (V/" + this.getRomanNumeral(chord.relatedChords.targetChordIndex) + ")"}}</a></p></td>
                 <td><p v-if="chord.relatedChords"><a href="#" v-on:click="handleChordSelection(chord.relatedChords.deceptiveResolutionChord)">{{ chord.relatedChords.deceptiveResolutionChord.notation + " (VI/" + this.getRomanNumeral(chord.relatedChords.targetChordIndex) + ")" }}</a></p></td>
@@ -83,7 +83,7 @@ import ScalePicker from './components/ScalePicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
 import ChordProgressionView from './components/ChordProgressionView.vue';
 import TonePlayer from './components/TonePlayer.vue';
-import { buildScale, buildScaleSevenths, ChordProgression, Step, cloneChord, Note,
+import { buildScale, buildScaleSevenths, ChordProgression, Step, cloneChord, Note, Scale,
   romanNumerals as theoryRomanNumerals,
   analyzeChordFunctionByRoman as theoryAnalyzeChordFunctionByRoman,
   populateOtherChromaticChords as theoryPopulateOtherChromaticChords,
@@ -103,6 +103,7 @@ export default {
     return {
       currentKey: null,
       currentScale: null,
+      majorScale: null,
       keyNotes: null,
       keyChords: null,
       chordNotes: null,
@@ -131,7 +132,7 @@ export default {
     },
     handleStepSelection(step) {
       console.log('Selected step in App:', JSON.parse(JSON.stringify(step)));
-      this.currentStep = step ? new Step(step.beats, cloneChord(step.chord), step.keyRoot, step.keyScale, step.index) : null;
+      this.currentStep = step ? new Step(step.beats, cloneChord(step.chord), step.index, step.keyRoot, step.keyScale, step.majorScale) : null;
       this.currentStepIndex = step ? step.index : null;
       this.chordNotes = step?.chord ? [...step.chord.notes] : null;
       this.currentChord = step?.chord || null;
@@ -148,6 +149,7 @@ export default {
       // console.log('this in handleKeySelection:', this);
       // console.log('buildScaleAndTriads on this is:', typeof this.buildScaleAndTriads);
       this.currentKey = note;
+      this.majorScale = buildScale(this.currentKey, Scale.Major);
       this.buildScaleAndTriads();
       this.chordNotes = null; // Reset chord notes on key change
       this.otherChromaticChords = theoryPopulateOtherChromaticChords(this.currentKey, this.currentScale);
@@ -175,7 +177,7 @@ export default {
       console.log('Adding step to progression in App:', JSON.parse(JSON.stringify(step)));
       const stepKeyRoot = step?.keyRoot || this.currentKey;
       const stepKeyScale = step?.keyScale || this.currentScale;
-      const newStep = new Step(step.beats, cloneChord(step.chord), stepKeyRoot, stepKeyScale, this.chordProgression.steps.length);
+      const newStep = new Step(step.beats, cloneChord(step.chord), this.chordProgression.steps.length, stepKeyRoot, stepKeyScale, this.majorScale);
       this.chordProgression.steps.push(newStep);
       console.log('Updated chord progression in App:', JSON.parse(JSON.stringify(this.chordProgression)));
       console.log('Current values in App after adding step:', {
@@ -192,9 +194,9 @@ export default {
       const existingStep = this.chordProgression.steps[stepIndex];
       const stepKeyRoot = step?.keyRoot || existingStep?.keyRoot || this.currentKey;
       const stepKeyScale = step?.keyScale || existingStep?.keyScale || this.currentScale;
-      const updatedStep = new Step(step.beats, cloneChord(step.chord), stepKeyRoot, stepKeyScale, stepIndex);
+      const updatedStep = new Step(step.beats, cloneChord(step.chord), stepIndex, stepKeyRoot, stepKeyScale, this.majorScale);
       this.chordProgression.steps[stepIndex] = updatedStep;
-      this.currentStep = new Step(updatedStep.beats, cloneChord(updatedStep.chord), updatedStep.keyRoot, updatedStep.keyScale, updatedStep.index);
+      this.currentStep = new Step(updatedStep.beats, cloneChord(updatedStep.chord), updatedStep.index, updatedStep.keyRoot, updatedStep.keyScale, updatedStep.majorScale);
       console.log('Updated chord progression in App:', JSON.parse(JSON.stringify(this.chordProgression)));
     },
     handleShiftLeft() {
