@@ -13,18 +13,18 @@ export class Note {
     useAlternateSharpName: boolean = false;
     useAlternateFlatName: boolean = false;
 
-    static readonly C = new Note("C", 0, 3, null, null, "B♯");
+    static readonly C = new Note("C", 0, 3, undefined, undefined, "B♯");
     static readonly CSHARP = new Note("C#", 1, 3, "C♯", "D♭");
     static readonly D = new Note("D", 2);
     static readonly DSHARP = new Note("D#", 3, 3, "D♯", "E♭");
-    static readonly E = new Note("E", 4, 3, null, null, null, "F♭");
-    static readonly F = new Note("F", 5, 3, null, null, "E♯");
+    static readonly E = new Note("E", 4, 3, undefined, undefined, undefined, "F♭");
+    static readonly F = new Note("F", 5, 3, undefined, undefined, "E♯");
     static readonly FSHARP = new Note("F#", 6, 3, "F♯", "G♭");
     static readonly G = new Note("G", 7);
     static readonly GSHARP = new Note("G#", 8, 3, "G♯", "A♭");
     static readonly A = new Note("A", 9);
     static readonly ASHARP = new Note("A#", 10, 3, "A♯", "B♭");
-    static readonly B = new Note("B", 11, 3, null, null, null, "C♭");
+    static readonly B = new Note("B", 11, 3, undefined, undefined, undefined, "C♭");
     static readonly NullNote = new Note("", -1);
     static readonly Notes = [
         Note.C, Note.CSHARP, Note.D, Note.DSHARP,
@@ -241,16 +241,6 @@ export class Chord {
         }
         return notations.join("");
     }
-
-    rolandChordDesigner(): string {
-        let notations = [];
-        let rootIndex = this.rootNote ? this.rootNote.index : (this.notes.length > 0 ? this.notes[0].index : -1);
-        for (let note of this.notes) {
-            let relativeIndex = (note.index - rootIndex + 12) % 12;
-            notations.push(relativeIndex);
-        }
-        return notations.join("-");
-    }
 }
 
 export class Step {
@@ -271,11 +261,25 @@ export class Step {
     }
 }
 
-export class ChordProgression {
+export class Phrase {
     steps: Step[];
+    label: String;
+    repetitions: number;
 
     constructor() {
         this.steps = [];
+        this.repetitions = 1;
+        this.label = "";
+    }
+}
+
+export class Song {
+    title: string;
+    phrases: Phrase[];
+
+    constructor() {
+        this.title = "";
+        this.phrases = [];
     }
 }
 
@@ -426,7 +430,7 @@ function selectIntervalBySteps(steps: number): Interval | null {
 
 export function buildScaleNotes(root: Note, scale: Scale): Note[] {
     const notes: Note[] = [];
-    let dupeRoot =  cloneNote(Note.Notes.filter(note => note.name != null).find(note => note.name === root.name));
+    let dupeRoot =  cloneNote(Note.Notes.filter(note => note.name != null).find(note => note.name === root.name)!);
     notes.push(dupeRoot);
     var thisNote = dupeRoot;
     for (let interval of scale.intervals) {
@@ -613,19 +617,19 @@ export function applySingleChange(chord: Chord, change: string, interval: Interv
             }
             break;
         case "new-note":
-            if (chord.notes) {
+            if (chord.notes && chordRoot) {
                 const newNote = selectNextNote(chordRoot, interval);
                 chord.notes.push(newNote);
             }
             break;
         case "replace-note":
-            if (chord.notes && target - 1 < chord.notes.length) {
+            if (chord.notes && chordRoot && target - 1 < chord.notes.length) {
                 const newNote = selectNextNote(chordRoot, interval);
                 chord.notes[target - 1] = newNote;
             }
             break;
         case "new-note-plus-octave":
-            if (chord.notes) {
+            if (chord.notes && chordRoot) {
                 let newNote = selectNextNote(chordRoot, interval);
                 newNote = cloneNote(newNote);
                 newNote.octaveIndex += 1;
@@ -729,7 +733,7 @@ export function getRomanNumeralChromatic(rootName: string, scaleNotes: Note[]): 
 
 export function getRomanNumeralMajorReferential(rootName: string): string {
     const notes: Note[] = [];
-    let dupeRoot =  cloneNote(Note.Notes.filter(note => note.name != null).find(note => note.name === rootName));
+    let dupeRoot =  cloneNote(Note.Notes.filter(note => note.name != null).find(note => note.name === rootName)!);
     return getRomanNumeralChromatic(rootName, buildScaleNotes(dupeRoot, Scale.Major));
 }
 
@@ -746,7 +750,7 @@ export function analyzeChordDiatonicity(chord: Chord, keyNotes: Note[]): string 
 }
 
 export function analyzeChordFunction(chord: Chord, keyNotes: Note[]): string {
-    const romanNumeral = getRomanNumeral(chord.rootNote.name, keyNotes);
+    const romanNumeral = getRomanNumeral(chord.rootNote?.name, keyNotes);
     if (romanNumeral === "") {
         return "chromatic";
     }
@@ -762,7 +766,7 @@ export function analyzeChordFunction(chord: Chord, keyNotes: Note[]): string {
 }
 
 export function analyzeChordFunctionByRoman(chord: Chord, keyNotes: Note[]): string {
-    const romanNumeral = getRomanNumeral(chord.rootNote.name, keyNotes);
+    const romanNumeral = getRomanNumeral(chord.rootNote?.name, keyNotes);
     if (romanNumeral === "") {
         return "chromatic";
     }
@@ -779,25 +783,25 @@ export function analyzeChordFunctionByRoman(chord: Chord, keyNotes: Note[]): str
 
 export function getRelatedChordsForChord(chord: Chord, targetIndex: number): RelatedChords {
         const targetNote = chord.rootNote
-        const dominantChord = new Chord(selectNextNote(targetNote, Interval.PerfectFifth), ChordShape.DominantSeventhChord);
-        dominantChord.notes = populateChordNotes(dominantChord.rootNote, dominantChord);
-        const relatedIIChord = new Chord(selectNextNote(targetNote, Interval.MajorSecond), ChordShape.MinorSeventhChord);
-        relatedIIChord.notes = populateChordNotes(relatedIIChord.rootNote, relatedIIChord);
-        const deceptiveResolutionChord = new Chord(selectNextNote(targetNote, Interval.MajorSixth), ChordShape.MajorSeventhChord);
-        deceptiveResolutionChord.notes = populateChordNotes(deceptiveResolutionChord.rootNote, deceptiveResolutionChord);
-        const substituteDominantChord = new Chord(selectPriorNote(targetNote, Interval.MinorSecond), ChordShape.DominantSeventhChord);
-        substituteDominantChord.notes = populateChordNotes(substituteDominantChord.rootNote, substituteDominantChord);
-        const subVRelatedIIChord = new Chord(selectPriorNote(substituteDominantChord.rootNote, Interval.MinorSecond), ChordShape.MinorSeventhChord);
-        subVRelatedIIChord.notes = populateChordNotes(subVRelatedIIChord.rootNote, subVRelatedIIChord);
-        let tritoneSubstituteChord: Chord = null;
-        let chromaticMediantChord: Chord = null;
+        const dominantChord = new Chord(selectNextNote(targetNote!, Interval.PerfectFifth), ChordShape.DominantSeventhChord);
+        dominantChord.notes = populateChordNotes(dominantChord.rootNote!, dominantChord);
+        const relatedIIChord = new Chord(selectNextNote(targetNote!, Interval.MajorSecond), ChordShape.MinorSeventhChord);
+        relatedIIChord.notes = populateChordNotes(relatedIIChord.rootNote!, relatedIIChord);
+        const deceptiveResolutionChord = new Chord(selectNextNote(targetNote!, Interval.MajorSixth), ChordShape.MajorSeventhChord);
+        deceptiveResolutionChord.notes = populateChordNotes(deceptiveResolutionChord.rootNote!, deceptiveResolutionChord);
+        const substituteDominantChord = new Chord(selectPriorNote(targetNote!, Interval.MinorSecond), ChordShape.DominantSeventhChord);
+        substituteDominantChord.notes = populateChordNotes(substituteDominantChord.rootNote!, substituteDominantChord);
+        const subVRelatedIIChord = new Chord(selectPriorNote(substituteDominantChord.rootNote!, Interval.MinorSecond), ChordShape.MinorSeventhChord);
+        subVRelatedIIChord.notes = populateChordNotes(subVRelatedIIChord.rootNote!, subVRelatedIIChord);
+        let tritoneSubstituteChord: Chord | undefined = undefined;
+        let chromaticMediantChord: Chord | undefined = undefined;
         if (chord.shape.name === "dominant seventh") {
-            tritoneSubstituteChord = new Chord(selectPriorNote(targetNote, Interval.DiminishedFifth), ChordShape.DominantSeventhChord);
-            tritoneSubstituteChord.notes = populateChordNotes(tritoneSubstituteChord.rootNote, tritoneSubstituteChord);
+            tritoneSubstituteChord = new Chord(selectPriorNote(targetNote!, Interval.DiminishedFifth), ChordShape.DominantSeventhChord);
+            tritoneSubstituteChord.notes = populateChordNotes(tritoneSubstituteChord.rootNote!, tritoneSubstituteChord);
         }
         if (targetIndex == 2 || targetIndex == 5) {
-            chromaticMediantChord = new Chord(selectPriorNote(targetNote, Interval.MinorSecond), ChordShape.MajorSeventhChord);
-            chromaticMediantChord.notes = populateChordNotes(chromaticMediantChord.rootNote, chromaticMediantChord);
+            chromaticMediantChord = new Chord(selectPriorNote(targetNote!, Interval.MinorSecond), ChordShape.MajorSeventhChord);
+            chromaticMediantChord.notes = populateChordNotes(chromaticMediantChord.rootNote!, chromaticMediantChord);
         }
         return new RelatedChords(targetIndex, dominantChord, relatedIIChord, deceptiveResolutionChord, substituteDominantChord, subVRelatedIIChord, tritoneSubstituteChord, chromaticMediantChord);
 }
@@ -805,15 +809,15 @@ export function getRelatedChordsForChord(chord: Chord, targetIndex: number): Rel
 export function populateOtherChromaticChords(keyRoot: Note): Chord[] {
     let chords: Chord[] = [];
     const flatSeventhChord = new Chord(selectPriorNote(keyRoot, Interval.MajorSecond), ChordShape.MajorSeventhChord);
-    flatSeventhChord.notes = populateChordNotes(flatSeventhChord.rootNote, flatSeventhChord);
+    flatSeventhChord.notes = populateChordNotes(flatSeventhChord.rootNote!, flatSeventhChord);
     chords.push(flatSeventhChord);
 
     const flatSixthChord = new Chord(selectPriorNote(keyRoot, Interval.MajorThird), ChordShape.MajorSeventhChord);
-    flatSixthChord.notes = populateChordNotes(flatSixthChord.rootNote, flatSixthChord);
+    flatSixthChord.notes = populateChordNotes(flatSixthChord.rootNote!, flatSixthChord);
     chords.push(flatSixthChord);
 
     const flatSecondChord = new Chord(selectNextNote(keyRoot, Interval.MinorSecond), ChordShape.MajorSeventhChord);
-    flatSecondChord.notes = populateChordNotes(flatSecondChord.rootNote, flatSecondChord);
+    flatSecondChord.notes = populateChordNotes(flatSecondChord.rootNote!, flatSecondChord);
     chords.push(flatSecondChord);
     return chords;
 }
@@ -822,7 +826,7 @@ export function fillBasedOnChordFunction(chord: Chord, keyRoot: Note, keyScale: 
     console.log("Determining fill color for chord:", chord.notation, " in key of:", keyRoot.name, " ", keyScale.name);
     const keyNotes = buildScale(keyRoot, keyScale);
     const functionType = analyzeChordFunctionByRoman(chord, keyNotes);
-    console.log("Filling based on chord function:", chord.rootNote.name, " function type:", functionType);
+    console.log("Filling based on chord function:", chord.rootNote?.name, " function type:", functionType);
     const chromaticallyAltered = chord.notes.some(note => !keyNotes.some(keyNote => keyNote.name === note.name || keyNote.sharpName === note.name || keyNote.flatName === note.name));
     if (functionType === "tonic") {
         return chromaticallyAltered ? "mediumSeaGreen" : "palegreen";

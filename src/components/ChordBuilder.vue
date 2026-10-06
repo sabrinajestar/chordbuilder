@@ -4,12 +4,12 @@
     <div>
       <v-container>
         <v-row>
-          <div>{{ currentChord ? currentChord.notation + " " + currentChord.rolandChordDesigner() : 'Choose Chord Root, Shape, and number of beats' }}</div>
+          <div>{{ currentChord ? currentChord.notation : 'Choose Chord Root, Shape, and number of beats' }}</div>
         </v-row>
         <v-row>
           <div class="button" @click="resetSelections">Reset Chord</div>
-          <div class="button" @click="addProgressionStep">Add to Chord Progression</div>
-          <div class="button" @click="modifyProgressionStep">Modify Chord in Progression</div>
+          <div class="button" @click="addPhraseStep">Add to Phrase</div>
+          <div class="button" @click="modifyPhraseStep">Modify Chord in Phrase</div>
           Beats:
           <select :key="`beats-${selectRenderKey}`" class="app-select" id="beats-select" v-model.number="currentBeats">
             <option v-for="i in 8" :key="i" :value="i" :selected="currentBeats === i">{{ i }}</option>
@@ -214,21 +214,21 @@ export default {
       this.$emit('select-chord', null);
       // console.log('Selections have been reset.');
     },
-    addProgressionStep() {
+    addPhraseStep() {
       if (this.currentChord) {
         const newStep = new Step(this.currentBeats, cloneChord(this.currentChord));
-        this.$emit('add-step-to-progression', newStep);
+        this.$emit('add-step-to-phrase', newStep);
         this.resetSelections();
-        // console.log('Added step to progression:', JSON.parse(JSON.stringify(newStep)));
+        // console.log('Added step to phrase:', JSON.parse(JSON.stringify(newStep)));
       }
     },
-    modifyProgressionStep() {
+    modifyPhraseStep() {
       if (this.currentChord) {
         const dupeChord = cloneChord(this.currentChord);
         const updatedStep = new Step(this.currentBeats, dupeChord, this.currentStep?.index);
         this.resetSelections();
-        this.$emit('modify-progression', updatedStep);
-        // console.log('Added or updated chord to progression:', JSON.parse(JSON.stringify(this.currentStep)));
+        this.$emit('modify-phrase', updatedStep);
+        // console.log('Added or updated chord to phrase:', JSON.parse(JSON.stringify(this.currentStep)));
       }
     },
     shiftChordDown() {

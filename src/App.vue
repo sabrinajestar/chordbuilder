@@ -49,25 +49,39 @@
             <Keyboard :scaleNotes="keyNotes" :chordNotes="chordNotes"></Keyboard>
           </v-row>
           <v-row>
-            <ChordProgressionView
-              :progression="chordProgression"
-              @play="playProgression"
+            <PhraseView
+              :phrase="currentPhrase"
+              @play-phrase="playPhrase"
               @select-step="handleStepSelection" 
               @shift-left="handleShiftLeft"
               @shift-right="handleShiftRight"
               @delete-step="handleDeleteStep"
               @delete-all-steps="handleDeleteAllSteps"
-            ></ChordProgressionView>
+            ></PhraseView>
           </v-row>
         </v-col>
         <v-col cols="5">
+          <v-row>
+            <SongBuilder
+              :songIn="currentSong"
+              @play-song="playSong"
+              @update-song-title="handleUpdateSongTitle"
+              @update-phrase-label="handleUpdatePhraseLabel"
+              @update-phrase-repetitions="handleUpdatePhraseRepetitions"
+              @select-phrase="handleSelectPhrase"
+              @move-phrase-up="handleMovePhraseUp"
+              @move-phrase-down="handleMovePhraseDown"
+              @delete-phrase="handleDeletePhrase"
+              @add-phrase-after="handleAddPhraseAfter"
+            ></SongBuilder>
+          </v-row>
           <v-row>
             <ChordBuilder @select-chord="handleChordSelection"
               :chordIn="currentChord"
               :step="currentStep"
               :scaleNotes="keyNotes" 
-              @add-step-to-progression="handleAddStepToProgression"
-              @modify-progression="handleModifyProgression"
+              @add-step-to-phrase="handleAddStepToPhrase"
+              @modify-phrase="handleModifyPhrase"
              ></ChordBuilder>
           </v-row>
         </v-col>
@@ -81,13 +95,14 @@ import Keyboard from './components/Keyboard.vue'
 import KeyPicker from './components/KeyPicker.vue';
 import ScalePicker from './components/ScalePicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
-import ChordProgressionView from './components/ChordProgressionView.vue';
+import PhraseView from './components/PhraseView.vue';
 import TonePlayer from './components/TonePlayer.vue';
-import { buildScale, buildScaleSevenths, ChordProgression, Step, cloneChord, Note, Scale,
+import { buildScale, buildScaleSevenths, Phrase, Step, cloneChord, Note, Scale, Song,
   romanNumerals as theoryRomanNumerals,
   analyzeChordFunctionByRoman as theoryAnalyzeChordFunctionByRoman,
   populateOtherChromaticChords as theoryPopulateOtherChromaticChords,
   fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from './models/theory';
+import SongBuilder from './components/SongBuilder.vue';
 
 export default {
   name: 'App',
@@ -96,8 +111,9 @@ export default {
     KeyPicker,
     ScalePicker,
     ChordBuilder,
-    ChordProgressionView,
-    TonePlayer
+    PhraseView,
+    TonePlayer,
+    SongBuilder
   },
   data() {
     return {
@@ -110,14 +126,104 @@ export default {
       currentChord: null,
       currentStep: null,
       currentStepIndex: null,
+      currentSong: new Song(),
+      nextPhraseId: 1,
       relatedChords: null,
-      chordProgression: new ChordProgression(),
+      currentPhrase: null,
       otherChromaticChords: [],
       play: null,
       cycleOfFifths: [Note.C, Note.G, Note.D, Note.A, Note.E, Note.B, Note.FSHARP, Note.CSHARP, Note.GSHARP, Note.DSHARP, Note.ASHARP, Note.F],
     };
   },
+  created() {
+    this.ensureCurrentSongHasPhrase();
+    this.ensurePhraseIds();
+    this.currentPhrase = this.currentSong.phrases[0] || null;
+  },
   methods: {
+    ensureCurrentSongHasPhrase() {
+      if (!this.currentSong.phrases || this.currentSong.phrases.length === 0) {
+        const initialPhrase = new Phrase();
+        initialPhrase.label = 'Phrase 1';
+        this.currentSong.phrases = [initialPhrase];
+      }
+    },
+    ensurePhraseIds() {
+      this.currentSong.phrases.forEach(phrase => {
+        if (!phrase._songBuilderId) {
+          phrase._songBuilderId = this.nextPhraseId;
+          this.nextPhraseId += 1;
+        }
+      });
+    },
+    assignPhraseId(phrase) {
+      phrase._songBuilderId = this.nextPhraseId;
+      this.nextPhraseId += 1;
+    },
+    handleUpdateSongTitle(title) {
+      this.currentSong.title = title;
+    },
+    handleUpdatePhraseLabel({ index, label }) {
+      const phrase = this.currentSong.phrases[index];
+      if (phrase) {
+        phrase.label = label;
+      }
+    },
+    handleUpdatePhraseRepetitions({ index, repetitions }) {
+      const phrase = this.currentSong.phrases[index];
+      if (phrase) {
+        phrase.repetitions = Number.isFinite(repetitions) ? repetitions : 1;
+      }
+    },
+    handleSelectPhrase(index) {
+      this.currentPhrase = this.currentSong.phrases[index] || null;
+      this.currentStep = null;
+      this.currentStepIndex = null;
+    },
+    handleMovePhraseUp(index) {
+      if (index > 0) {
+        [this.currentSong.phrases[index - 1], this.currentSong.phrases[index]] = [
+          this.currentSong.phrases[index],
+          this.currentSong.phrases[index - 1]
+        ];
+      }
+    },
+    handleMovePhraseDown(index) {
+      if (index < this.currentSong.phrases.length - 1) {
+        [this.currentSong.phrases[index], this.currentSong.phrases[index + 1]] = [
+          this.currentSong.phrases[index + 1],
+          this.currentSong.phrases[index]
+        ];
+      }
+    },
+    handleDeletePhrase(index) {
+      if (this.currentSong.phrases.length <= 1) {
+        this.currentSong.phrases.splice(0, 1);
+        const replacement = new Phrase();
+        replacement.label = 'Phrase 1';
+        this.assignPhraseId(replacement);
+        this.currentSong.phrases.push(replacement);
+        this.currentPhrase = replacement;
+        this.currentStep = null;
+        this.currentStepIndex = null;
+        return;
+      }
+
+      const deletedPhrase = this.currentSong.phrases[index];
+      this.currentSong.phrases.splice(index, 1);
+      if (this.currentPhrase === deletedPhrase) {
+        const fallbackIndex = Math.min(index, this.currentSong.phrases.length - 1);
+        this.currentPhrase = this.currentSong.phrases[fallbackIndex] || null;
+        this.currentStep = null;
+        this.currentStepIndex = null;
+      }
+    },
+    handleAddPhraseAfter(index) {
+      const newPhrase = new Phrase();
+      this.assignPhraseId(newPhrase);
+      newPhrase.label = `New Phrase ${this.currentSong.phrases.length + 1}`;
+      this.currentSong.phrases.splice(index + 1, 0, newPhrase);
+    },
     handleChordSelection(chord) {
       console.log('Selected chord in App:', JSON.parse(JSON.stringify(chord)));
       this.chordNotes = chord ? [...chord.notes] : null;
@@ -127,7 +233,7 @@ export default {
         currentKey: JSON.parse(JSON.stringify(this.currentKey)),
         currentScale: JSON.parse(JSON.stringify(this.currentScale)),
         currentChord: JSON.parse(JSON.stringify(this.currentChord)),
-        chordProgression: JSON.parse(JSON.stringify(this.chordProgression))
+        currentPhrase: JSON.parse(JSON.stringify(this.currentPhrase))
       });
     },
     handleStepSelection(step) {
@@ -173,80 +279,80 @@ export default {
         console.log('Determined related chords:', JSON.parse(JSON.stringify(this.relatedChords)));
       }
     },
-    handleAddStepToProgression(step) {
-      console.log('Adding step to progression in App:', JSON.parse(JSON.stringify(step)));
+    handleAddStepToPhrase(step) {
+      console.log('Adding step to phrase in App:', JSON.parse(JSON.stringify(step)));
       const stepKeyRoot = step?.keyRoot || this.currentKey;
       const stepKeyScale = step?.keyScale || this.currentScale;
-      const newStep = new Step(step.beats, cloneChord(step.chord), this.chordProgression.steps.length, stepKeyRoot, stepKeyScale, this.majorScale);
-      this.chordProgression.steps.push(newStep);
-      console.log('Updated chord progression in App:', JSON.parse(JSON.stringify(this.chordProgression)));
+      const newStep = new Step(step.beats, cloneChord(step.chord), this.currentPhrase.steps.length, stepKeyRoot, stepKeyScale, this.majorScale);
+      this.currentPhrase.steps.push(newStep);
+      console.log('Updated phrase in App:', JSON.parse(JSON.stringify(this.currentPhrase)));
       console.log('Current values in App after adding step:', {
         currentKey: JSON.parse(JSON.stringify(this.currentKey)),
         currentScale: JSON.parse(JSON.stringify(this.currentScale)),
         currentChord: JSON.parse(JSON.stringify(this.currentChord)),
-        chordProgression: JSON.parse(JSON.stringify(this.chordProgression))
+        currentPhrase: JSON.parse(JSON.stringify(this.currentPhrase))
       });
     },
-    handleModifyProgression(step) {
+    handleModifyPhrase(step) {
       console.log("current step index in App before modification:", JSON.parse(JSON.stringify(this.currentStepIndex)));
-      console.log('Modifying step in progression in App:', JSON.parse(JSON.stringify(step)));
+      console.log('Modifying step in phrase in App:', JSON.parse(JSON.stringify(step)));
       const stepIndex = this.currentStepIndex;
-      const existingStep = this.chordProgression.steps[stepIndex];
+      const existingStep = this.currentPhrase.steps[stepIndex];
       const stepKeyRoot = step?.keyRoot || existingStep?.keyRoot || this.currentKey;
       const stepKeyScale = step?.keyScale || existingStep?.keyScale || this.currentScale;
       const updatedStep = new Step(step.beats, cloneChord(step.chord), stepIndex, stepKeyRoot, stepKeyScale, this.majorScale);
-      this.chordProgression.steps[stepIndex] = updatedStep;
+      this.currentPhrase.steps[stepIndex] = updatedStep;
       this.currentStep = new Step(updatedStep.beats, cloneChord(updatedStep.chord), updatedStep.index, updatedStep.keyRoot, updatedStep.keyScale, updatedStep.majorScale);
-      console.log('Updated chord progression in App:', JSON.parse(JSON.stringify(this.chordProgression)));
+      console.log('Updated phrase in App:', JSON.parse(JSON.stringify(this.currentPhrase)));
     },
     handleShiftLeft() {
-      console.log('Shifting progression step left in App');
-      if (this.chordProgression.steps.length > 1 && this.currentStepIndex > 0) {
-        const thisStep = this.chordProgression.steps[this.currentStepIndex];
+      console.log('Shifting phrase step left in App');
+      if (this.currentPhrase.steps.length > 1 && this.currentStepIndex > 0) {
+        const thisStep = this.currentPhrase.steps[this.currentStepIndex];
         thisStep.index = this.currentStepIndex-1;
-        const previousStep = this.chordProgression.steps[this.currentStepIndex - 1];
+        const previousStep = this.currentPhrase.steps[this.currentStepIndex - 1];
         previousStep.index = this.currentStepIndex;
-        this.chordProgression.steps[this.currentStepIndex - 1] = thisStep;
-        this.chordProgression.steps[this.currentStepIndex] = previousStep;
+        this.currentPhrase.steps[this.currentStepIndex - 1] = thisStep;
+        this.currentPhrase.steps[this.currentStepIndex] = previousStep;
         this.currentStepIndex -= 1;
-        console.log('Updated chord progression after shift left:', JSON.parse(JSON.stringify(this.chordProgression)));
+        console.log('Updated phrase after shift left:', JSON.parse(JSON.stringify(this.currentPhrase)));
       }
     },
     handleShiftRight() {
-      console.log('Shifting progression step right in App');
-      if (this.chordProgression.steps.length > 1 && this.currentStepIndex < this.chordProgression.steps.length - 1) {
-        const thisStep = this.chordProgression.steps[this.currentStepIndex];
+      console.log('Shifting phrase step right in App');
+      if (this.currentPhrase.steps.length > 1 && this.currentStepIndex < this.currentPhrase.steps.length - 1) {
+        const thisStep = this.currentPhrase.steps[this.currentStepIndex];
         thisStep.index = this.currentStepIndex+1;
-        const nextStep = this.chordProgression.steps[this.currentStepIndex + 1];
+        const nextStep = this.currentPhrase.steps[this.currentStepIndex + 1];
         nextStep.index = this.currentStepIndex;
-        this.chordProgression.steps[this.currentStepIndex + 1] = thisStep;
-        this.chordProgression.steps[this.currentStepIndex] = nextStep;
+        this.currentPhrase.steps[this.currentStepIndex + 1] = thisStep;
+        this.currentPhrase.steps[this.currentStepIndex] = nextStep;
         this.currentStepIndex += 1;
-        console.log('Updated chord progression after shift right:', JSON.parse(JSON.stringify(this.chordProgression)));
+        console.log('Updated phrase after shift right:', JSON.parse(JSON.stringify(this.currentPhrase)));
       }
     },
     handleDeleteStep() {
-      console.log('Deleting progression step in App');
-      if (this.chordProgression.steps.length > 0) {
-        this.chordProgression.steps.splice(this.currentStepIndex, 1);
+      console.log('Deleting phrase step in App');
+      if (this.currentPhrase.steps.length > 0) {
+        this.currentPhrase.steps.splice(this.currentStepIndex, 1);
         // Update indices of remaining steps
-        for (let i = 0; i < this.chordProgression.steps.length; i++) {
-          this.chordProgression.steps[i].index = i;
+        for (let i = 0; i < this.currentPhrase.steps.length; i++) {
+          this.currentPhrase.steps[i].index = i;
         }
         // Update current step index and selection
-        if (this.currentStepIndex >= this.chordProgression.steps.length) {
-          this.currentStepIndex = this.chordProgression.steps.length - 1;
+        if (this.currentStepIndex >= this.currentPhrase.steps.length) {
+          this.currentStepIndex = this.currentPhrase.steps.length - 1;
         }
-        this.currentStep = this.chordProgression.steps[this.currentStepIndex] || null;
-        console.log('Updated chord progression after deletion:', JSON.parse(JSON.stringify(this.chordProgression)));
+        this.currentStep = this.currentPhrase.steps[this.currentStepIndex] || null;
+        console.log('Updated phrase after deletion:', JSON.parse(JSON.stringify(this.currentPhrase)));
       }
     },
     handleDeleteAllSteps() {
-      console.log('Deleting all progression steps in App');
-      this.chordProgression.steps = [];
+      console.log('Deleting all phrase steps in App');
+      this.currentPhrase.steps = [];
       this.currentStepIndex = null;
       this.currentStep = null;
-      console.log('Updated chord progression after deleting all steps:', JSON.parse(JSON.stringify(this.chordProgression)));
+      console.log('Updated phrase after deleting all steps:', JSON.parse(JSON.stringify(this.currentPhrase)));
     },
     analyzeChordFunctionByRoman(chord, keyNotes) {
       return theoryAnalyzeChordFunctionByRoman(chord, keyNotes);
@@ -257,10 +363,20 @@ export default {
     getRomanNumeral(num) {
       return theoryRomanNumerals[num];
     },
-    async playProgression() {
-      console.log('In App, play progression');
+    async playSong() {
+      console.log('In App, play phrase');
       this.chordNotes = null;
-      for (let step of this.chordProgression.steps) {
+      for (let phrase of this.currentSong.phrases) {
+        this.currentPhrase = phrase;
+        console.log('Playing phrase:', JSON.parse(JSON.stringify(phrase)));
+        for (let i = 0; i < phrase.repetitions; i++) {
+          console.log(`Repetition ${i + 1} of ${phrase.repetitions}`);
+          await this.playPhrase(phrase.steps);
+        }
+      }
+    },
+    async playPhrase(steps) {
+      for (let step of steps) {
         // Update key/scale once per step and rebuild the table before playing beats
         if (step.keyRoot && step.keyScale) {
           this.currentKey = step.keyRoot;
