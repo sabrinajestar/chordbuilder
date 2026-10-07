@@ -1,8 +1,8 @@
 <template>
   <div id="phrase" v-if="phrase !== null">
-    <p>Current Song</p>
+    <p class="phrasetitle">{{  phrase.label }}</p>
     <div style="display: flex; flex-direction: column; align-items: flex-start;">
-      <p id="label"><span id="phraseLabel">{{ phrase.title }}</span><span id="phraseReps">Number of Repetitions: {{ phrase.repetitions }}</span></p>
+      <p id="label"><span id="phraseLabel">{{ phrase.title }}</span></p>
       <svg v-for="line in getNumberOfLines()" :key="`phrase-line-${line}`" width="640" :height="100" xmlns="http://www.w3.org/2000/svg">
         <rect x="0" y="0" width="640" height="80" class="phraseview" fill="url(#beatHash)" />
         <g>
@@ -19,51 +19,39 @@
           <text v-for="(step, i) in phrase.steps" :key="`text-${line}-${i}`" :id="`phrase-step-${i}`" v-on:click="selectStep(i)" :x="getStepXOnLine(i, line) + (step.beats * 20) / 2" y="30" text-anchor="middle" dominant-baseline="middle" font-size="14" style="cursor: grab;" :style="{ display: isStepOnLine(i, line) ? 'block' : 'none' }">{{ stepRomanNumeral(step) }}</text>
         </g>
       </svg>
-      <svg width="640" height="100" xmlns="http://www.w3.org/2000/svg">
-        <a @click="play">
-          <polygon points="0,5 0,25 17,15" style="fill:green;stroke:black;stroke-width:1" />
-          <title>Play Phrase</title>
-        </a>
-        <a @click="pause">
-          <rect x="30" y="5" width="10" height="20" fill-opacity="0"/>
-          <rect x="30" y="5" width="3" height="20" style="fill:yellow;" />
-          <rect x="37" y="5" width="3" height="20" style="fill:yellow;" />
-        </a>
-        <a @click="stop">
-          <rect x="55" y="5" width="20" height="20" style="fill:red;stroke:black;stroke-width:1" />
-        </a>
-        <a @click="shiftLeft">
-          <polygon points="112,5 112,25 95,15" style="fill:white;stroke:black;stroke-width:1" />
-          <rect x="112" y="12.5" width="10" height="5" style="fill:white;stroke:black;stroke-width:1" />
-          <title>Shift This Chord Left</title>
-        </a>
-        <a @click="shiftRight">
-          <polygon points="135,5 135,25 152,15" style="fill:white;stroke:black;stroke-width:1" />
-          <rect x="125" y="12.5" width="10" height="5" style="fill:white;stroke:black;stroke-width:1" />
-          <title>Shift This Chord Right</title>
-        </a>
-        <a @click="deleteStep">
-          <line x1="175" y1="5" x2="200" y2="30" style="stroke:red;stroke-width:5" />
-          <line x1="200" y1="5" x2="175" y2="30" style="stroke:red;stroke-width:5" />
-          <title>Delete This Chord</title>
-        </a>
-        <a @click="deleteAll">
-          <!-- based on https://icons.getbootstrap.com/icons/trash/ -->
-          <g transform="translate(220, 3) scale(1.875)">
-            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-          </g>
-          <title>Clear The Phrase</title>
-        </a>
-        <a @click="exportToMIDI">
-          <!-- based on https://icons.getbootstrap.com/icons/file-earmark-arrow-down/ -->
-          <g transform="translate(265, 3) scale(1.875)">
-            <path d="M8.5 6.5a.5.5 0 0 0-1 0v3.793L6.354 9.146a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 10.293z"/>
-            <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
-          </g>
-          <title>Export To MIDI</title>
-        </a>
-      </svg>
+      <div>
+        <button class="iconButton" @click="shiftLeft" aria-label="Shift Left" title="Shift this chord left">
+          <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g transform="translate(2,2) scale(1.25)">
+              <path fill="black" stroke="black" stroke-width="0.6" fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm11.5 5.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5z"/>
+            </g>
+          </svg>
+        </button>
+        <button class="iconButton" @click="shiftRight" aria-label="Shift Right" title="Shift this chord right">
+          <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g transform="translate(2,2) scale(1.25)">
+              <path fill="black" stroke="black" stroke-width="0.6" fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm4.5 5.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"/>
+            </g>
+          </svg>
+        </button>
+        <button class="iconButton" @click="deleteStep" aria-label="Delete This Step" title="Delete this chord">
+          <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g transform="translate(2,2)">
+              <line x1="0" y1="0" x2="20" y2="20" style="stroke:red;stroke-width:5" />
+              <line x1="20" y1="0" x2="0" y2="20" style="stroke:red;stroke-width:5" />
+            </g>
+          </svg>
+        </button>
+        <button class="iconButton" @click="deleteAll" aria-label="Delete All Steps" title="Delete all chords">
+          <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- based on https://icons.getbootstrap.com/icons/trash/ -->
+            <g transform="translate(2,2) scale(1.25)">
+              <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+              <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+            </g>
+          </svg>
+        </button>
+      </div>
       <p>Color codes:</p>
       <ul>
         <li><span style="background-color: palegreen;">Diatonic Tonic Chord</span></li>
@@ -79,7 +67,7 @@
 </template>
 
 <script>
-import { Phrase, buildScale, Note, Scale,
+import { Phrase, buildScale, Scale,
   fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from '../models/theory.ts';
 // import { setTimeout as delay } from 'timers/promises';
 
@@ -191,45 +179,6 @@ export default {
     deleteAll() {
       console.log('Emit delete all steps event');
       this.$emit('delete-all-steps');
-    },
-    exportToMIDI() {
-      console.log('Begin export to MIDI process');
-      const MidiWriter = require('midi-writer-js');
-      const track = new MidiWriter.Track();
-      track.setTempo(120);
-      this.phrase.steps.forEach(step => {
-        const chordNotes = step.chord.notes.filter(note => note !== Note.NullNote).map(note => note.name + note.octaveIndex);
-        const duration = 'T' + (step.beats * 128); // Convert beats to ticks (assuming 128 ticks per beat)
-        console.log('Adding step to MIDI track:', chordNotes, 'with duration:', duration);
-        const chordEvent = new MidiWriter.NoteEvent({pitch: chordNotes, duration: duration});
-        console.log('Created MIDI event:', chordEvent);
-        track.addEvent(chordEvent);
-      });
-      const write = new MidiWriter.Writer(track);
-      const midiData = write.buildFile();
-      console.log('MIDI data:', midiData);
-
-      const saveFile = async (blob) => {
-        try {
-          const handle = await window.showSaveFilePicker({
-            types: [{
-              accept: {
-                'audio/midi': ['.midi', '.mid']
-              },
-            }],
-          });
-          const writable = await handle.createWritable();
-          await writable.write(blob);
-          await writable.close();
-          return handle;
-        } catch (err) {
-          console.error(err.name, err.message);
-        }
-      };
-
-      const blob = new Blob([midiData], { type: 'audio/midi' });
-      saveFile(blob);
-      console.log('Export to MIDI process completed');
     }
   }
 }
@@ -264,6 +213,9 @@ a {
   font-weight: bold;
   font-size: 0.7em;
 }
+#phrase{
+  border: 1px solid black;
+}
 #phraseReps{
   vertical-align: bottom;
   text-align: right;
@@ -288,5 +240,10 @@ a {
 }
 .currentTonic{
   background-color: yellow;
+}
+.phrasetitle{
+    text-align: left;
+    font-weight: bold;
+    font-size: 1.2em;
 }
 </style>

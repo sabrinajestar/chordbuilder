@@ -1,23 +1,34 @@
 <template>
   <div id="chordbuilder">
-    
     <div>
       <v-container>
-        <v-row>
-          <div>{{ currentChord ? currentChord.notation : 'Choose Chord Root, Shape, and number of beats' }}</div>
+        <v-row class="chord-header-row">
+          <div class="current-chord">
+            {{ currentChord ? currentChord.notation : 'Choose Chord Root, Shape, and number of beats' }}
+          </div>
+          <div class="chord-header-actions">
+            <button class="iconButton" @click="resetSelections" aria-label="Reset chord" title="Reset Chord">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+              </svg>
+            </button>
+            <button class="iconButton" @click="addPhraseStep" aria-label="Add to phrase" title="Add Chord to Phrase">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+              </svg>
+            </button>
+            <button class="iconButton" @click="modifyPhraseStep" aria-label="Modify chord in phrase" title="Modify Chord in Phrase">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0z"/>
+                <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>
+              </svg>
+            </button>
+          </div>
         </v-row>
         <v-row>
-          <div class="button" @click="resetSelections">Reset Chord</div>
-          <div class="button" @click="addPhraseStep">Add to Phrase</div>
-          <div class="button" @click="modifyPhraseStep">Modify Chord in Phrase</div>
-          Beats:
-          <select :key="`beats-${selectRenderKey}`" class="app-select" id="beats-select" v-model.number="currentBeats">
-            <option v-for="i in 8" :key="i" :value="i" :selected="currentBeats === i">{{ i }}</option>
-          </select>
-        </v-row>
-        <v-row>
-          <v-col cols="4">
-            Select Chord Root
+          <v-col cols="3">
+            Chord Root
             <select :key="`root-${selectRenderKey}`" class="app-select" id="chord-root-select" v-model="selectedRootIndex" @change="handleChordRootChange">
               <option value="">Choose root</option>
               <option v-for="note in notes" :key="note.index" :value="String(note.index)">
@@ -25,14 +36,18 @@
               </option>
             </select>
           </v-col>
-          <v-col cols="8">
-            Select Chord Shape
+          <v-col cols="6">
+            Chord Shape
             <select :key="`shape-${selectRenderKey}`" class="app-select" id="chord-shape-select" v-model="selectedShapeName" @change="handleShapeChange">
               <option value="">Choose shape</option>
               <option v-for="shape in shapes" :key="shape.name" :value="shape.name">
                 {{ shape.name }}
               </option>
             </select>
+          </v-col>
+          <v-col cols="3">
+            Beats
+            <input class="compact-number" type="number" :value="currentBeats" @input="currentBeats = parseInt($event.target.value)">
           </v-col>
         </v-row>
         <v-row>
@@ -44,8 +59,8 @@
           </div>
         </v-row>
         <v-row>
-          <div class="button" @click="shiftChordDown">Shift Chord Down</div>
-          <div class="button" @click="shiftChordUp">Shift Chord Up</div>
+          <div class="button" @click="shiftChordDown">Octave Down</div>
+          <div class="button" @click="shiftChordUp">Octave Up</div>
         </v-row>
       </v-container>
     </div>
@@ -252,9 +267,6 @@ export default {
 </script>
 
 <style scoped>
-h3 {
-  margin: 40px 0 0;
-}
 ul {
   list-style-type: none;
   padding: 0;
@@ -268,6 +280,7 @@ a {
 }
 #chordbuilder{
   text-align: left;
+  border: black solid 1px;
 }
 .rootSelect, .shapeSelect, .beatsSelect, .chordModsSelect, .button{
   text-align: center;
@@ -291,5 +304,29 @@ a {
 }
 .currentRoot, .currentChords, .currentShape, .currentBeats{
   background-color: yellow;
+}
+.current-chord{
+  font-weight: bold;
+  font-size: 1.2em;
+  padding-right: 20px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+.chord-header-row {
+  align-items: center;
+}
+.chord-header-actions {
+  display: inline-flex;
+  align-items: center;
+}
+.chord-header-actions .iconButton {
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.compact-number {
+  width: 5ch;
 }
 </style>

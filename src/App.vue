@@ -2,15 +2,6 @@
   <div id="app">
     <v-container>
       <v-row align="center">
-        <v-col cols="2" class="d-flex align-items-center">
-          <TonePlayer :chordNotes="chordNotes"></TonePlayer>
-        </v-col>
-        <v-col cols="2" class="d-flex align-items-center">
-          <KeyPicker @select-key="handleKeySelection" :key-in="currentKey"></KeyPicker>
-        </v-col>
-        <v-col cols="4" class="d-flex align-items-center">
-            <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
-        </v-col>
         <v-col cols="12">
           <div>
             <p>Current Key & Scale: {{ currentKey && currentScale ? (currentKey.displayName || currentKey.name) + ' ' + currentScale.name : 'No key or scale selected' }}</p>
@@ -51,7 +42,7 @@
           <v-row>
             <PhraseView
               :phrase="currentPhrase"
-              @play-phrase="playPhrase"
+              @export-song-to-midi="exportSongToMIDI"
               @select-step="handleStepSelection" 
               @shift-left="handleShiftLeft"
               @shift-right="handleShiftRight"
@@ -62,9 +53,22 @@
         </v-col>
         <v-col cols="5">
           <v-row>
+            <v-col cols="12">
+              <TonePlayer
+                :chordNotes="chordNotes"
+                @play-song="playSong"
+                @pause-song="pauseSong"
+                @stop-song="stopSong"
+              ></TonePlayer>
+            </v-col>
+          </v-row>
+          <v-row>
             <SongBuilder
               :songIn="currentSong"
+              :key-in="currentKey"
               @play-song="playSong"
+              @select-key="handleKeySelection"
+              @select-scale="handleScaleSelection"
               @update-song-title="handleUpdateSongTitle"
               @update-phrase-label="handleUpdatePhraseLabel"
               @update-phrase-repetitions="handleUpdatePhraseRepetitions"
@@ -73,7 +77,16 @@
               @move-phrase-down="handleMovePhraseDown"
               @delete-phrase="handleDeletePhrase"
               @add-phrase-after="handleAddPhraseAfter"
+              @duplicate-phrase-after="handleDuplicatePhraseAfter"
             ></SongBuilder>
+          </v-row>
+          <v-row>
+            <v-col cols="5" class="d-flex align-items-center">
+              <KeyPicker @select-key="handleKeySelection" :key-in="currentKey"></KeyPicker>
+            </v-col>
+            <v-col cols="7" class="d-flex align-items-center">
+                <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
+            </v-col>
           </v-row>
           <v-row>
             <ChordBuilder @select-chord="handleChordSelection"
@@ -92,11 +105,11 @@
 
 <script>
 import Keyboard from './components/Keyboard.vue'
-import KeyPicker from './components/KeyPicker.vue';
-import ScalePicker from './components/ScalePicker.vue';
 import ChordBuilder from './components/ChordBuilder.vue';
 import PhraseView from './components/PhraseView.vue';
 import TonePlayer from './components/TonePlayer.vue';
+import KeyPicker from './components/KeyPicker.vue';
+import ScalePicker from './components/ScalePicker.vue';
 import { buildScale, buildScaleSevenths, Phrase, Step, cloneChord, Note, Scale, Song,
   romanNumerals as theoryRomanNumerals,
   analyzeChordFunctionByRoman as theoryAnalyzeChordFunctionByRoman,
@@ -108,12 +121,12 @@ export default {
   name: 'App',
   components: {
     Keyboard,
-    KeyPicker,
-    ScalePicker,
     ChordBuilder,
     PhraseView,
     TonePlayer,
-    SongBuilder
+    SongBuilder,
+    KeyPicker,
+    ScalePicker
   },
   data() {
     return {
@@ -131,7 +144,9 @@ export default {
       relatedChords: null,
       currentPhrase: null,
       otherChromaticChords: [],
-      play: null,
+      isPlayingSong: false,
+      isPlaybackPaused: false,
+      playbackSessionId: 0,
       cycleOfFifths: [Note.C, Note.G, Note.D, Note.A, Note.E, Note.B, Note.FSHARP, Note.CSHARP, Note.GSHARP, Note.DSHARP, Note.ASHARP, Note.F],
     };
   },
@@ -223,6 +238,16 @@ export default {
       this.assignPhraseId(newPhrase);
       newPhrase.label = `New Phrase ${this.currentSong.phrases.length + 1}`;
       this.currentSong.phrases.splice(index + 1, 0, newPhrase);
+    },
+    handleDuplicatePhraseAfter(index) {
+      const originalPhrase = this.currentSong.phrases[index];
+      if (originalPhrase) {
+        const duplicatedPhrase = new Phrase();
+        duplicatedPhrase.label = `${originalPhrase.label} Copy`;
+        duplicatedPhrase.steps = originalPhrase.steps.map(step => new Step(step.beats, cloneChord(step.chord), step.index, step.keyRoot, step.keyScale, step.majorScale));
+        this.assignPhraseId(duplicatedPhrase);
+        this.currentSong.phrases.splice(index + 1, 0, duplicatedPhrase);
+      }
     },
     handleChordSelection(chord) {
       console.log('Selected chord in App:', JSON.parse(JSON.stringify(chord)));
@@ -363,20 +388,119 @@ export default {
     getRomanNumeral(num) {
       return theoryRomanNumerals[num];
     },
+    pauseSong() {
+      if (!this.isPlayingSong) {
+        return;
+      }
+      this.isPlaybackPaused = !this.isPlaybackPaused;
+    },
+    stopSong() {
+      this.playbackSessionId += 1;
+      this.isPlaybackPaused = false;
+      this.isPlayingSong = false;
+      this.chordNotes = null;
+    },
+    sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    },
+    async waitIfPausedOrStopped(sessionId) {
+      while (this.isPlaybackPaused) {
+        if (sessionId !== this.playbackSessionId) {
+          return false;
+        }
+        await this.sleep(75);
+      }
+      return sessionId === this.playbackSessionId;
+    },
+    async waitBeatDuration(sessionId, durationMs) {
+      let elapsed = 0;
+      const tickMs = 50;
+      while (elapsed < durationMs) {
+        const canContinue = await this.waitIfPausedOrStopped(sessionId);
+        if (!canContinue) {
+          return false;
+        }
+        const chunk = Math.min(tickMs, durationMs - elapsed);
+        await this.sleep(chunk);
+        elapsed += chunk;
+      }
+      return true;
+    },
+    async exportSongToMIDI() {
+      console.log('Begin export song to MIDI process');
+      const MidiWriter = require('midi-writer-js');
+      const track = new MidiWriter.Track();
+      track.setTempo(120);
+
+      for (const phrase of this.currentSong.phrases || []) {
+        const repetitions = Number(phrase.repetitions) || 1;
+        for (let i = 0; i < repetitions; i++) {
+          for (const step of phrase.steps || []) {
+            const chordNotes = (step.chord?.notes || [])
+              .filter(note => note && note !== Note.NullNote)
+              .map(note => note.name + note.octaveIndex);
+            if (chordNotes.length === 0) {
+              continue;
+            }
+            const duration = 'T' + (step.beats * 128);
+            track.addEvent(new MidiWriter.NoteEvent({ pitch: chordNotes, duration }));
+          }
+        }
+      }
+
+      const writer = new MidiWriter.Writer(track);
+      const midiData = writer.buildFile();
+      const blob = new Blob([midiData], { type: 'audio/midi' });
+
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: (this.currentSong.title || 'song') + '.mid',
+          types: [{
+            accept: {
+              'audio/midi': ['.midi', '.mid']
+            },
+          }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        console.log('Export song to MIDI process completed');
+      } catch (err) {
+        console.error(err.name, err.message);
+      }
+    },
     async playSong() {
+      const sessionId = this.playbackSessionId + 1;
+      this.playbackSessionId = sessionId;
+      this.isPlaybackPaused = false;
+      this.isPlayingSong = true;
       console.log('In App, play phrase');
       this.chordNotes = null;
       for (let phrase of this.currentSong.phrases) {
+        if (sessionId !== this.playbackSessionId) {
+          break;
+        }
         this.currentPhrase = phrase;
         console.log('Playing phrase:', JSON.parse(JSON.stringify(phrase)));
         for (let i = 0; i < phrase.repetitions; i++) {
+          const canContinue = await this.playPhrase(phrase.steps, sessionId);
+          if (!canContinue) {
+            this.isPlayingSong = false;
+            return;
+          }
           console.log(`Repetition ${i + 1} of ${phrase.repetitions}`);
-          await this.playPhrase(phrase.steps);
         }
       }
+      if (sessionId === this.playbackSessionId) {
+        this.isPlayingSong = false;
+      }
     },
-    async playPhrase(steps) {
+    async playPhrase(steps, sessionId = this.playbackSessionId) {
       for (let step of steps) {
+        const canContinue = await this.waitIfPausedOrStopped(sessionId);
+        if (!canContinue) {
+          return false;
+        }
         // Update key/scale once per step and rebuild the table before playing beats
         if (step.keyRoot && step.keyScale) {
           this.currentKey = step.keyRoot;
@@ -387,9 +511,13 @@ export default {
         console.log(`Playing chord: ${step.chord.romanNumeral(this.keyNotes)} for ${step.beats} beats`);
         for (let i = 1; i <= step.beats; i++) {
           this.chordNotes = step.chord.notes;
-          await new Promise(resolve => setTimeout(resolve, 500));
+          const keepGoing = await this.waitBeatDuration(sessionId, 500);
+          if (!keepGoing) {
+            return false;
+          }
         }
       }
+      return true;
     }
   }
 }
@@ -408,5 +536,18 @@ export default {
   -webkit-appearance: listbox;
   border: 1px solid black;
   border-radius: 4px;
+}
+.iconButton {
+  margin-top: 10px;
+  margin-right: 6px;
+  padding: 4px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background-color: white;
+  color: #111;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
