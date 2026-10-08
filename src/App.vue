@@ -42,12 +42,12 @@
           <v-row>
             <PhraseView
               :phrase="currentPhrase"
-              @export-song-to-midi="exportSongToMIDI"
               @select-step="handleStepSelection" 
               @shift-left="handleShiftLeft"
               @shift-right="handleShiftRight"
               @delete-step="handleDeleteStep"
               @delete-all-steps="handleDeleteAllSteps"
+              @play-phrase="playPhrase(currentPhrase.steps)"
             ></PhraseView>
           </v-row>
         </v-col>
@@ -59,6 +59,10 @@
                 @play-song="playSong"
                 @pause-song="pauseSong"
                 @stop-song="stopSong"
+                @delete-song="deleteSong"
+                @export-song-to-midi="exportSongToMIDI"
+                @save-song="saveSong"
+                @import-song-from-file="importSongFromFile"
               ></TonePlayer>
             </v-col>
           </v-row>
@@ -156,6 +160,19 @@ export default {
     this.currentPhrase = this.currentSong.phrases[0] || null;
   },
   methods: {
+    deleteSong() {
+      if(confirm("Are you sure you want to delete the current song? This action cannot be undone.")) {
+        this.currentSong = new Song();
+        this.nextPhraseId = 1;
+        this.ensureCurrentSongHasPhrase();
+        this.ensurePhraseIds();
+        this.currentPhrase = this.currentSong.phrases[0] || null;
+        this.currentStep = null;
+        this.currentStepIndex = null;
+        this.chordNotes = null;
+        this.currentChord = null;
+      }
+    },
     ensureCurrentSongHasPhrase() {
       if (!this.currentSong.phrases || this.currentSong.phrases.length === 0) {
         const initialPhrase = new Phrase();
@@ -373,11 +390,13 @@ export default {
       }
     },
     handleDeleteAllSteps() {
-      console.log('Deleting all phrase steps in App');
-      this.currentPhrase.steps = [];
-      this.currentStepIndex = null;
-      this.currentStep = null;
-      console.log('Updated phrase after deleting all steps:', JSON.parse(JSON.stringify(this.currentPhrase)));
+      if (confirm("Are you sure you want to delete all chords in this phrase? This action cannot be undone.")) {
+        console.log('Deleting all phrase steps in App');
+        this.currentPhrase.steps = [];
+        this.currentStepIndex = null;
+        this.currentStep = null;
+        console.log('Updated phrase after deleting all steps:', JSON.parse(JSON.stringify(this.currentPhrase)));
+      }
     },
     analyzeChordFunctionByRoman(chord, keyNotes) {
       return theoryAnalyzeChordFunctionByRoman(chord, keyNotes);
@@ -518,6 +537,85 @@ export default {
         }
       }
       return true;
+    },
+    async saveSong() {
+      console.log('Save song');
+      const data = JSON.stringify(this.currentSong)
+      const blob = new Blob([data], {type: 'application/json'})
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: (this.currentSong.title || 'song') + '.json',
+          types: [{
+            accept: {
+              'application/json': ['.json']
+            },
+          }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+      } catch (err) {
+        console.error(err.name, err.message);
+      }
+    },
+    rehydrateSong(rawSong) {
+      const song = new Song();
+      song.title = rawSong?.title || '';
+      song.phrases = (rawSong?.phrases || []).map(rawPhrase => this.rehydratePhrase(rawPhrase));
+      return song;
+    },
+    rehydratePhrase(rawPhrase) {
+      const phrase = new Phrase();
+      phrase.label = rawPhrase?.label || '';
+      phrase.repetitions = Number(rawPhrase?.repetitions) || 1;
+      phrase.steps = (rawPhrase?.steps || []).map(rawStep => this.rehydrateStep(rawStep));
+      if (rawPhrase && rawPhrase._songBuilderId) {
+        phrase._songBuilderId = rawPhrase._songBuilderId;
+      }
+      return phrase;
+    },
+    rehydrateStep(rawStep) {
+      const step = new Step(
+        Number(rawStep?.beats) || 1,
+        cloneChord(rawStep?.chord),
+        rawStep?.index,
+        rawStep?.keyRoot || undefined,
+        rawStep?.keyScale || undefined,
+        rawStep?.majorScale || undefined
+      );
+      return step;
+    },
+    async importSongFromFile() {
+      console.log('Import song from file');
+      const pickerOpts = {
+        types: [
+          {
+            description: "JSON",
+            accept: {
+              "application/json": [".json"],
+            },
+          },
+        ],
+        excludeAcceptAllOption: true,
+        multiple: false,
+      };
+      const [fileHandle] = await window.showOpenFilePicker(pickerOpts);
+      const file = await fileHandle.getFile();
+      const contents = await file.text();
+      try {
+        const parsedSong = JSON.parse(contents);
+        this.currentSong = this.rehydrateSong(parsedSong);
+        this.ensureCurrentSongHasPhrase();
+        this.ensurePhraseIds();
+        this.currentPhrase = this.currentSong.phrases[0] || null;
+        this.currentStep = null;
+        this.currentStepIndex = null;
+        this.currentChord = null;
+        this.chordNotes = null;
+      } catch (err) {
+        console.error(err.name, err.message);
+      }
+
     }
   }
 }

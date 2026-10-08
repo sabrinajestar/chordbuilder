@@ -36,12 +36,37 @@
       </svg>
     </button>
 
+    <button class="iconButton" @click="$emit('delete-song')" aria-label="Delete song" title="Delete song">
+      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g transform="translate(2,2)">
+          <line x1="0" y1="0" x2="20" y2="20" style="stroke:red;stroke-width:5" />
+          <line x1="20" y1="0" x2="0" y2="20" style="stroke:red;stroke-width:5" />
+        </g>
+      </svg>
+    </button>
+
     <button class="iconButton" @click="exportSongToMIDI" aria-label="Export To MIDI" title="Export To MIDI">
       <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <!-- based on https://icons.getbootstrap.com/icons/file-earmark-arrow-down/ -->
         <g transform="translate(2,2) scale(1.25)">
           <path d="M8.5 6.5a.5.5 0 0 0-1 0v3.793L6.354 9.146a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 10.293z"/>
           <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
+        </g>
+      </svg>
+    </button>
+
+    <button class="iconButton" @click="saveSong" aria-label="Save to File" title="Save to File">
+      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" class="bi bi-floppy">
+        <g transform="translate(2,2) scale(1.25)">
+          <path d="M11 2H9v3h2z"/>
+          <path d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5 1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0 .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086 1H13v4.5A1.5 1.5 0 0 1 11.5 7h-7A1.5 1.5 0 0 1 3 5.5V1H1.5a.5.5 0 0 0-.5.5m3 4a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V1H4zM3 15h10v-4.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5z"/>
+        </g>
+      </svg>
+    </button>
+
+    <button class="iconButton" @click="importSongFromFile" aria-label="Import From Save File" title="Import From Save File">
+      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" class="bi bi-folder2-open" >
+        <g transform="translate(2,2) scale(1.25)">
+          <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7z"/>
         </g>
       </svg>
     </button>
@@ -113,6 +138,14 @@ export default {
     exportSongToMIDI() {
       console.log('Emit export song to MIDI event');
       this.$emit('export-song-to-midi');
+    },
+    saveSong() {
+      console.log('Emit save song event');
+      this.$emit('save-song');
+    },
+    importSongFromFile() {
+      console.log('Emit import song from file event');
+      this.$emit('import-song-from-file');
     }
   },
   watch: {

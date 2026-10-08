@@ -117,6 +117,7 @@ export default {
       if (newStep != undefined) {
         console.log('detected step change in ChordBuilder watch:', newStep);
         this.currentStep = new Step(newStep.beats, cloneChord(newStep.chord), newStep.index);
+        this.currentBeats = Number(newStep.beats) || 4;
         this.currentRoot = this.currentStep.chord?.rootNote || this.currentStep.chord?.notes?.[0] || null;
         this.currentShape = this.currentStep.chord?.shape || null;
         this.currentChord = this.currentStep.chord || null;

@@ -51,8 +51,12 @@
             </g>
           </svg>
         </button>
+        <button class="iconButton" @click="$emit('play-phrase')" aria-label="Play phrase" title="Play this phrase">
+          <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <polygon points="4,3 4,21 20,12" style="fill:green;stroke:black;stroke-width:1" />
+          </svg>
+        </button>
       </div>
-      <p>Color codes:</p>
       <ul>
         <li><span style="background-color: palegreen;">Diatonic Tonic Chord</span></li>
         <li><span style="background-color: mediumSeaGreen;">Chromatically Altered Tonic Chord</span></li>
@@ -212,9 +216,6 @@ a {
   text-align: left;
   font-weight: bold;
   font-size: 0.7em;
-}
-#phrase{
-  border: 1px solid black;
 }
 #phraseReps{
   vertical-align: bottom;
