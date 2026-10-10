@@ -1,6 +1,5 @@
 <template>
   <div id="keypicker">
-    Key:
     <select class="app-select" id="key-select" v-model="currentTonicName" @change="handleKeyChange">
       <option v-for="note in notes" :key="note.index" :value="note.name">
         {{ note.displayName || note.name }}

@@ -74,6 +74,10 @@ export default {
   name: 'ChordBuilder',
   props: {
     scaleNotes: Array,
+    currentMeter: {
+      type: Object,
+      default: null
+    },
     step: {
       type: Object,
       default: null
@@ -116,7 +120,7 @@ export default {
       console.log('detected step prop change in ChordBuilder');
       if (newStep != undefined) {
         console.log('detected step change in ChordBuilder watch:', newStep);
-        this.currentStep = new Step(newStep.beats, cloneChord(newStep.chord), newStep.index);
+        this.currentStep = new Step(newStep.beats, cloneChord(newStep.chord), newStep.index, newStep.keyRoot, newStep.keyScale, newStep.majorScale, newStep.meter || this.currentMeter || undefined);
         this.currentBeats = Number(newStep.beats) || 4;
         this.currentRoot = this.currentStep.chord?.rootNote || this.currentStep.chord?.notes?.[0] || null;
         this.currentShape = this.currentStep.chord?.shape || null;
@@ -232,7 +236,7 @@ export default {
     },
     addPhraseStep() {
       if (this.currentChord) {
-        const newStep = new Step(this.currentBeats, cloneChord(this.currentChord));
+        const newStep = new Step(this.currentBeats, cloneChord(this.currentChord), undefined, undefined, undefined, undefined, this.currentMeter || this.currentStep?.meter || undefined);
         this.$emit('add-step-to-phrase', newStep);
         this.resetSelections();
         // console.log('Added step to phrase:', JSON.parse(JSON.stringify(newStep)));
@@ -241,7 +245,7 @@ export default {
     modifyPhraseStep() {
       if (this.currentChord) {
         const dupeChord = cloneChord(this.currentChord);
-        const updatedStep = new Step(this.currentBeats, dupeChord, this.currentStep?.index);
+        const updatedStep = new Step(this.currentBeats, dupeChord, this.currentStep?.index, this.currentStep?.keyRoot, this.currentStep?.keyScale, this.currentStep?.majorScale, this.currentMeter || this.currentStep?.meter || undefined);
         this.resetSelections();
         this.$emit('modify-phrase', updatedStep);
         // console.log('Added or updated chord to phrase:', JSON.parse(JSON.stringify(this.currentStep)));
@@ -326,8 +330,5 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-.compact-number {
-  width: 5ch;
 }
 </style>

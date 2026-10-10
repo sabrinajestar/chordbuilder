@@ -1,6 +1,5 @@
 <template>
   <div id="scalepicker">
-    Scale:
     <select class="app-select" id="scale-select" @change="selectScale(scales[$event.target.selectedIndex])">
       <option v-for="scale in scales" :key="scale.index" :value="scale.index" :selected="scale.index === 0">
         {{ scale.displayName || scale.name }}

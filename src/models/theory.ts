@@ -243,6 +243,20 @@ export class Chord {
     }
 }
 
+export class Meter {
+    beatsPerMeasure: number;
+    beatUnit: number;
+
+    constructor(beatsPerMeasure: number, beatUnit: number) {
+        this.beatsPerMeasure = beatsPerMeasure;
+        this.beatUnit = beatUnit;
+    }
+
+    display(): string {
+        return `${this.beatsPerMeasure} / ${this.beatUnit}`;
+    }
+}
+
 export class Step {
     beats: number;
     chord: Chord;
@@ -250,14 +264,16 @@ export class Step {
     keyScale?: Scale;
     majorScale?: Scale;
     index?: number;
+    meter?: Meter;
 
-    constructor(beats: number, chord: Chord, index?: number, keyRoot?: Note, keyScale?: Scale, majorScale?: Scale) {
+    constructor(beats: number, chord: Chord, index?: number, keyRoot?: Note, keyScale?: Scale, majorScale?: Scale, meter?: Meter) {
         this.beats = beats;
         this.chord = chord;
         this.keyRoot = keyRoot;
         this.keyScale = keyScale;
         this.majorScale = majorScale;
         this.index = index;
+        this.meter = meter;
     }
 }
 
@@ -276,10 +292,12 @@ export class Phrase {
 export class Song {
     title: string;
     phrases: Phrase[];
+    bpm: number;
 
     constructor() {
         this.title = "";
         this.phrases = [];
+        this.bpm = 120;
     }
 }
 
@@ -386,25 +404,25 @@ export function buildScale(root: Note, scale: Scale): Note[] {
 
     let sharpDuplicates = sharpNames.filter((name, index, arr) => arr.findIndex(otherName => otherName.charAt(0) === name.charAt(0)) !== index);
     let flatDuplicates = flatNames.filter((name, index, arr) => arr.findIndex(otherName => otherName.charAt(0) === name.charAt(0)) !== index);
-    console.log("Scale note names with sharps:", new Set(sharpNames), " duplicates:", sharpDuplicates);
-    console.log("Scale note names with flats:", new Set(flatNames), " duplicates:", flatDuplicates);
+    // console.log("Scale note names with sharps:", new Set(sharpNames), " duplicates:", sharpDuplicates);
+    // console.log("Scale note names with flats:", new Set(flatNames), " duplicates:", flatDuplicates);
     // if both have duplicates, try using the alternate names
     if (sharpDuplicates.length > 0 && flatDuplicates.length > 0) {
         useAlternates = true;
         sharpNames = scaleNotesWithoutOctave.map(note => note.alternateSharpName ? note.alternateSharpName : note.sharpName ? note.sharpName : note.name);
         flatNames = scaleNotesWithoutOctave.map(note => note.alternateFlatName ? note.alternateFlatName : note.flatName ? note.flatName : note.name);
-        console.log("Scale note names with alternates (sharps):", new Set(sharpNames), "(flats):", new Set(flatNames));
+        // console.log("Scale note names with alternates (sharps):", new Set(sharpNames), "(flats):", new Set(flatNames));
         sharpDuplicates = sharpNames.filter((name, index, arr) => arr.findIndex(otherName => otherName.charAt(0) === name.charAt(0)) !== index);
         flatDuplicates = flatNames.filter((name, index, arr) => arr.findIndex(otherName => otherName.charAt(0) === name.charAt(0)) !== index);
-        console.log("Scale note names with sharps (alternates):", new Set(sharpNames), " duplicates:", sharpDuplicates);
-        console.log("Scale note names with flats (alternates):", new Set(flatNames), " duplicates:", flatDuplicates);
+        // console.log("Scale note names with sharps (alternates):", new Set(sharpNames), " duplicates:", sharpDuplicates);
+        // console.log("Scale note names with flats (alternates):", new Set(flatNames), " duplicates:", flatDuplicates);
     }
 
     if (sharpDuplicates.length === 0) {
-        console.log("Using sharps for scale note names");
+        // console.log("Using sharps for scale note names");
         useSharps = true;
     } else if (flatDuplicates.length === 0) {
-        console.log("Using flats for scale note names");
+        // console.log("Using flats for scale note names");
         useFlats = true;
     }
     for (let i = 0; i < notes.length; i++) {
@@ -711,23 +729,54 @@ export function getRomanNumeral(rootName: string | undefined, scaleNotes: Note[]
 }
 
 export function getRomanNumeralChromatic(rootName: string, scaleNotes: Note[]): string {
+    console.log(`Finding Roman numeral chromatic for root: ${rootName} in scale notes: ${scaleNotes.map(note => note.name).join(", ")}`);
     // cycle through chromatic notes to find the root note and determine its position relative to the scale notes
     const rootIndex = Note.Notes.findIndex(note => note.name === rootName || note.sharpName === rootName || note.flatName === rootName);
     if (rootIndex === -1) {
         return "";
     }
-    const scaleNoteIndices = scaleNotes.map(scaleNote => Note.Notes.findIndex(note => note.name === scaleNote.name || note.sharpName === scaleNote.name || note.flatName === scaleNote.name));
+    const referentScaleNotes = scaleNotes.length > 0
+        ? buildScale(scaleNotes[0], Scale.Major)
+        : scaleNotes;
+    const scaleNoteIndices = referentScaleNotes.map(scaleNote =>
+        Note.Notes.findIndex(note => note.name === scaleNote.name || note.sharpName === scaleNote.name || note.flatName === scaleNote.name)
+    );
+
     let closestScaleNoteIndex = -1;
+    let accidental = "";
     let minDistance = Number.MAX_VALUE;
+
     for (let i = 0; i < scaleNoteIndices.length; i++) {
-        const distance = scaleNoteIndices[i] - rootIndex;
-        if (distance > 0 && distance < minDistance) {
-            minDistance = distance;
+        const scaleIndex = scaleNoteIndices[i];
+        if (scaleIndex === -1) {
+            continue;
+        }
+
+        const upDistance = (scaleIndex - rootIndex + Note.Notes.length) % Note.Notes.length;
+        const downDistance = (rootIndex - scaleIndex + Note.Notes.length) % Note.Notes.length;
+        console.log(`Root: ${rootName} (index ${rootIndex}), Scale Note: ${referentScaleNotes[i].name} (index ${scaleIndex}), Up Distance: ${upDistance}, Down Distance: ${downDistance}`);
+
+        if (upDistance > 0 && upDistance <= minDistance) {
+            minDistance = upDistance;
             closestScaleNoteIndex = i;
+            accidental = "♭";
+            console.log(`New closest scale note: ${referentScaleNotes[i].name} with up distance ${upDistance} and minDistance ${minDistance}, setting accidental to ♭`);
+        }
+
+        if (downDistance > 0 && downDistance < minDistance) {
+            minDistance = downDistance;
+            closestScaleNoteIndex = i;
+            accidental = "♯";
+            console.log(`New closest scale note: ${referentScaleNotes[i].name} with down distance ${downDistance} and minDistance ${minDistance}, setting accidental to ♯`);
         }
     }
-    const closestScaleNote = scaleNotes[closestScaleNoteIndex];
-    const accidental = rootIndex < Note.Notes.findIndex(note => note.name === closestScaleNote.name || note.sharpName === closestScaleNote.name || note.flatName === closestScaleNote.name) ? "♭" : "♯";
+
+    if (closestScaleNoteIndex === -1) {
+        console.log(`No closest scale note found for Root: ${rootName} (index ${rootIndex})`);
+        return "";
+    }
+    console.log(`Closest scale note for Root: ${rootName} is ${referentScaleNotes[closestScaleNoteIndex].name} (index ${scaleNoteIndices[closestScaleNoteIndex]}), returning Roman numeral: ${accidental}${romanNumerals[closestScaleNoteIndex % romanNumerals.length]}`);
+
     return accidental + romanNumerals[closestScaleNoteIndex % romanNumerals.length];
 }
 

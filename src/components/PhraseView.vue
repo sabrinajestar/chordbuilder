@@ -4,19 +4,40 @@
     <div style="display: flex; flex-direction: column; align-items: flex-start;">
       <p id="label"><span id="phraseLabel">{{ phrase.title }}</span></p>
       <svg v-for="line in getNumberOfLines()" :key="`phrase-line-${line}`" width="640" :height="100" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="0" width="640" height="80" class="phraseview" fill="url(#beatHash)" />
+        <rect x="0" y="0" width="640" height="100" class="phraseview" fill="url(#beatHash)" />
         <g>
-          <line v-for="i in 32" :key="`beat-${line}-${i}`" :x1="i * 20" y1="65" y2="80" :x2="i * 20" style="stroke:black;stroke-width:1" />
+          <line v-for="i in 32" :key="`beat-${line}-${i}`" :x1="i * 20" y1="85" y2="100" :x2="i * 20" style="stroke:black;stroke-width:1" />
         </g>
         <g>
-          <line v-for="i in 8" :key="`measure-${line}-${i}`" :x1="i * 80" y1="50" y2="80" :x2="i * 80" style="stroke:black;stroke-width:2" />
+          <line v-for="x in getMeasureLinePositions(line)" :key="`measure-${line}-${x}`" :x1="x" y1="70" y2="100" :x2="x" style="stroke:black;stroke-width:2" />
         </g>
-        <g>
-          <rect v-for="(step, i) in phrase.steps" :key="`step-${i}`" :x="getStepXOnLine(i, line)" y="0" :width="step.beats * 20" height="50" :fill="fillBasedOnChordFunction(step.chord, step.keyRoot, step.keyScale)" stroke="gray" stroke-width="1" :style="{ display: isStepOnLine(i, line) ? 'block' : 'none' }"/>
-          <foreignObject v-for="(step, i) in phrase.steps" :key="`key-${line}-${i}`" :x="getStepXOnLine(i, line)" y="0" :width="step.beats * 20" height="20" :style="{ display: isStepOnLine(i, line) ? 'block' : 'none' }">
-            <div xmlns="http://www.w3.org/1999/xhtml" :id="`phrase-step-${i}-key`" style="font-size:11px; text-align:center; word-wrap:break-word; overflow-wrap:break-word; width:100%; height:100%;">{{ displayKey(i, step.keyRoot, step.keyScale) }}</div>
-          </foreignObject>
-          <text v-for="(step, i) in phrase.steps" :key="`text-${line}-${i}`" :id="`phrase-step-${i}`" v-on:click="selectStep(i)" :x="getStepXOnLine(i, line) + (step.beats * 20) / 2" y="30" text-anchor="middle" dominant-baseline="middle" font-size="14" style="cursor: grab;" :style="{ display: isStepOnLine(i, line) ? 'block' : 'none' }">{{ stepRomanNumeral(step) }}</text>
+        <g
+            v-for="(step, i) in phrase.steps"
+            :key="`step-${i}`"
+            :transform="`translate(${getStepXOnLine(i, line)}, 0)`">
+          <text
+            :id="`phrase-step-${i}-key`"
+            x="3"
+            y="4"
+            class="step-label-svg">{{ displayKey(i, step.keyRoot, step.keyScale) }} {{ displayMeter(i) }}</text>
+          <g
+            :style="{ display: isStepOnLine(i, line) ? 'block' : 'none', cursor: 'pointer' }"
+            @click="selectStep(i)">
+            <rect
+              :width="step.beats * 20"
+              height="50"
+              y="20"
+              :fill="fillBasedOnChordFunction(step.chord, step.keyRoot, step.keyScale)"
+              stroke="gray"
+              stroke-width="1" />
+            <text
+              :id="`phrase-step-${i}`"
+              :x="(step.beats * 20) / 2"
+              y="50"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="14">{{ stepRomanNumeral(step) }}</text>
+          </g>
         </g>
       </svg>
       <div>
@@ -71,16 +92,20 @@
 </template>
 
 <script>
-import { Phrase, buildScale, Scale,
+import { Phrase, buildScale, Scale, Meter,
   fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from '../models/theory.ts';
 // import { setTimeout as delay } from 'timers/promises';
 
 export default {
   name: 'PhraseView',
   props: {
-    phrase: Phrase
+    phrase: Phrase,
+    currentMeter: Meter
   },
   methods: {
+    getFallbackMeter() {
+      return this.currentMeter || new Meter(4, 4);
+    },
     getTotalBeats() {
       return this.phrase.steps.reduce((total, step) => total + step.beats, 0);
     },
@@ -110,6 +135,79 @@ export default {
       const xOnLine = (stepStartBeat - lineStartBeat) * 20;
       return Math.max(0, xOnLine);
     },
+    getEffectiveMeterForStep(index) {
+      if (!this.phrase?.steps?.length) {
+        return this.getFallbackMeter();
+      }
+      for (let i = index; i >= 0; i -= 1) {
+        const stepMeter = this.phrase.steps[i]?.meter;
+        if (stepMeter) {
+          return stepMeter;
+        }
+      }
+      return this.getFallbackMeter();
+    },
+    getMeterChanges() {
+      const steps = this.phrase?.steps || [];
+      const totalBeats = this.getTotalBeats();
+
+      if (steps.length === 0) {
+        return [{ beat: 0, meter: this.getFallbackMeter() }];
+      }
+
+      const changes = [{ beat: 0, meter: this.getEffectiveMeterForStep(0) }];
+      let currentMeter = changes[0].meter;
+      let currentBeat = 0;
+
+      for (let i = 1; i < steps.length; i += 1) {
+        currentBeat += steps[i - 1].beats;
+        const nextMeter = this.getEffectiveMeterForStep(i);
+        if (!this.metersMatch(currentMeter, nextMeter)) {
+          changes.push({ beat: currentBeat, meter: nextMeter });
+          currentMeter = nextMeter;
+        }
+      }
+
+      const trailingMeter = this.getFallbackMeter();
+      if (totalBeats > 0 && !this.metersMatch(currentMeter, trailingMeter)) {
+        changes.push({ beat: totalBeats, meter: trailingMeter });
+      }
+
+      return changes;
+    },
+    getMeasureLinePositions(line) {
+      const lineStartBeat = (line - 1) * 32;
+      const lineEndBeat = line * 32;
+      const positions = new Set();
+
+      const meterChanges = this.getMeterChanges();
+      let activeMeter = meterChanges[0]?.meter || this.getFallbackMeter();
+      let pendingMeter = null;
+      let nextChangeIndex = 1;
+      let measureBoundaryBeat = 0;
+
+      while (measureBoundaryBeat < lineEndBeat) {
+        const nextMeasureBoundaryBeat = measureBoundaryBeat + activeMeter.beatsPerMeasure;
+
+        while (nextChangeIndex < meterChanges.length && meterChanges[nextChangeIndex].beat <= nextMeasureBoundaryBeat) {
+          pendingMeter = meterChanges[nextChangeIndex].meter;
+          nextChangeIndex += 1;
+        }
+
+        if (nextMeasureBoundaryBeat > lineStartBeat && nextMeasureBoundaryBeat < lineEndBeat) {
+          positions.add((nextMeasureBoundaryBeat - lineStartBeat) * 20);
+        }
+
+        measureBoundaryBeat = nextMeasureBoundaryBeat;
+
+        if (pendingMeter) {
+          activeMeter = pendingMeter;
+          pendingMeter = null;
+        }
+      }
+
+      return Array.from(positions).sort((left, right) => left - right);
+    },
     getStepX(index) {
       let x = 0;
       for (let i = 0; i < index; i++) {
@@ -132,13 +230,9 @@ export default {
       }
       if (step.majorScale) {
         const majorScaleNotes = buildScale(step.keyRoot, Scale.Major);
-        // return getRomanNumeralChromatic(step.chord.rootNote.name, majorScaleNotes);
         return step.chord.romanNumeral(majorScaleNotes);
       }
-      
-      // return getRomanNumeralMajorReferential(step.keyRoot);
-      // const stepScaleNotes = buildScale(step.keyRoot, step.keySca"le);
-      // return step.chord.romanNumeral(stepScaleNotes);"
+      return step.chord.romanNumeral(buildScale(step.keyRoot, step.keyScale));
     },
     play() {
       console.log('Emit play event');
@@ -147,14 +241,6 @@ export default {
     setStepIndex(step, index) {
       step.index = index;
     },
-    // pause() {
-    //   console.log('Emit pause event');
-    //   this.$emit('pause');
-    // },
-    // stop() {
-    //   console.log('Emit stop event');
-    //   this.$emit('stop');
-    // },
     selectStep(index) {
       console.log('Selected step in phrase:', JSON.parse(JSON.stringify(this.phrase.steps[index])));
       this.$emit('select-step', this.phrase.steps[index]);
@@ -179,6 +265,32 @@ export default {
       } else {
         return '';
       }
+    },
+    metersMatch(leftMeter, rightMeter) {
+      if (!leftMeter && !rightMeter) {
+        return true;
+      }
+      if (!leftMeter || !rightMeter) {
+        return false;
+      }
+      return Number(leftMeter.beatsPerMeasure) === Number(rightMeter.beatsPerMeasure)
+        && Number(leftMeter.beatUnit) === Number(rightMeter.beatUnit);
+    },
+    formatMeter(meter) {
+      if (!meter) return '';
+      return Number(meter.beatsPerMeasure) + '/' + Number(meter.beatUnit);
+    },
+    displayMeter(index) {
+      console.log('Displaying meter for step', index, this.phrase.steps[index]);
+      const meter = this.phrase?.steps?.[index]?.meter;
+      if (!meter) {
+        return '';
+      }
+      if (index === 0) {
+        return this.formatMeter(meter);
+      }
+      const previousMeter = this.phrase?.steps?.[index - 1]?.meter;
+      return this.metersMatch(meter, previousMeter) ? '' : this.formatMeter(meter);
     },
     deleteAll() {
       console.log('Emit delete all steps event');
@@ -246,5 +358,10 @@ a {
     text-align: left;
     font-weight: bold;
     font-size: 1.2em;
+}
+.step-label-svg {
+  font-size: 11px;
+  text-anchor: start;
+  dominant-baseline: hanging;
 }
 </style>

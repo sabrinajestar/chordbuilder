@@ -42,6 +42,7 @@
           <v-row>
             <PhraseView
               :phrase="currentPhrase"
+              :current-meter="currentMeter"
               @select-step="handleStepSelection" 
               @shift-left="handleShiftLeft"
               @shift-right="handleShiftRight"
@@ -56,6 +57,10 @@
             <v-col cols="12">
               <TonePlayer
                 :chordNotes="chordNotes"
+                :song-bpm="currentSong.bpm"
+                :is-playing-song="isPlayingSong"
+                :is-playback-paused="isPlaybackPaused"
+                :beat-pulse="playbackBeatPulse"
                 @play-song="playSong"
                 @pause-song="pauseSong"
                 @stop-song="stopSong"
@@ -63,6 +68,7 @@
                 @export-song-to-midi="exportSongToMIDI"
                 @save-song="saveSong"
                 @import-song-from-file="importSongFromFile"
+                @update-song-bpm="handleUpdateSongBPM"
               ></TonePlayer>
             </v-col>
           </v-row>
@@ -85,17 +91,21 @@
             ></SongBuilder>
           </v-row>
           <v-row>
-            <v-col cols="5" class="d-flex align-items-center">
+            <v-col cols="3" class="d-flex align-items-center">
               <KeyPicker @select-key="handleKeySelection" :key-in="currentKey"></KeyPicker>
             </v-col>
-            <v-col cols="7" class="d-flex align-items-center">
+            <v-col cols="5" class="d-flex align-items-center">
                 <ScalePicker @select-scale="handleScaleSelection"></ScalePicker>
+            </v-col>
+            <v-col cols="4" class="d-flex align-items-center">
+                <MeterPicker @select-meter="handleMeterSelection"></MeterPicker>
             </v-col>
           </v-row>
           <v-row>
             <ChordBuilder @select-chord="handleChordSelection"
               :chordIn="currentChord"
               :step="currentStep"
+              :current-meter="currentMeter"
               :scaleNotes="keyNotes" 
               @add-step-to-phrase="handleAddStepToPhrase"
               @modify-phrase="handleModifyPhrase"
@@ -114,12 +124,13 @@ import PhraseView from './components/PhraseView.vue';
 import TonePlayer from './components/TonePlayer.vue';
 import KeyPicker from './components/KeyPicker.vue';
 import ScalePicker from './components/ScalePicker.vue';
-import { buildScale, buildScaleSevenths, Phrase, Step, cloneChord, Note, Scale, Song,
+import { buildScale, buildScaleSevenths, Phrase, Step, cloneChord, Note, Scale, Song, Meter,
   romanNumerals as theoryRomanNumerals,
   analyzeChordFunctionByRoman as theoryAnalyzeChordFunctionByRoman,
   populateOtherChromaticChords as theoryPopulateOtherChromaticChords,
   fillBasedOnChordFunction as theoryFillBasedOnChordFunction } from './models/theory';
 import SongBuilder from './components/SongBuilder.vue';
+import MeterPicker from './components/MeterPicker.vue';
 
 export default {
   name: 'App',
@@ -130,12 +141,14 @@ export default {
     TonePlayer,
     SongBuilder,
     KeyPicker,
-    ScalePicker
+    ScalePicker,
+    MeterPicker
   },
   data() {
     return {
       currentKey: null,
       currentScale: null,
+      currentMeter: null,
       majorScale: null,
       keyNotes: null,
       keyChords: null,
@@ -151,6 +164,7 @@ export default {
       isPlayingSong: false,
       isPlaybackPaused: false,
       playbackSessionId: 0,
+      playbackBeatPulse: 0,
       cycleOfFifths: [Note.C, Note.G, Note.D, Note.A, Note.E, Note.B, Note.FSHARP, Note.CSHARP, Note.GSHARP, Note.DSHARP, Note.ASHARP, Note.F],
     };
   },
@@ -261,7 +275,7 @@ export default {
       if (originalPhrase) {
         const duplicatedPhrase = new Phrase();
         duplicatedPhrase.label = `${originalPhrase.label} Copy`;
-        duplicatedPhrase.steps = originalPhrase.steps.map(step => new Step(step.beats, cloneChord(step.chord), step.index, step.keyRoot, step.keyScale, step.majorScale));
+        duplicatedPhrase.steps = originalPhrase.steps.map(step => new Step(step.beats, cloneChord(step.chord), step.index, step.keyRoot, step.keyScale, step.majorScale, step.meter || this.currentMeter || undefined));
         this.assignPhraseId(duplicatedPhrase);
         this.currentSong.phrases.splice(index + 1, 0, duplicatedPhrase);
       }
@@ -280,7 +294,7 @@ export default {
     },
     handleStepSelection(step) {
       console.log('Selected step in App:', JSON.parse(JSON.stringify(step)));
-      this.currentStep = step ? new Step(step.beats, cloneChord(step.chord), step.index, step.keyRoot, step.keyScale, step.majorScale) : null;
+      this.currentStep = step ? new Step(step.beats, cloneChord(step.chord), step.index, step.keyRoot, step.keyScale, step.majorScale, step.meter) : null;
       this.currentStepIndex = step ? step.index : null;
       this.chordNotes = step?.chord ? [...step.chord.notes] : null;
       this.currentChord = step?.chord || null;
@@ -310,6 +324,24 @@ export default {
       this.buildScaleAndTriads();
       this.chordNotes = null; // Reset chord notes on scale change
     },
+    handleMeterSelection(meter) {
+      console.log('Selected meter in App:', JSON.parse(JSON.stringify(meter)));
+      this.currentMeter = meter;
+      if (this.currentStep) {
+        this.currentStep.meter = meter;
+      }
+      if (this.currentPhrase && this.currentStepIndex !== null && this.currentPhrase.steps[this.currentStepIndex]) {
+        this.currentPhrase.steps[this.currentStepIndex].meter = meter;
+      }
+    },
+    handleUpdateSongBPM(bpm) {
+      if (this.currentSong) {
+        const parsedBPM = parseInt(bpm, 10);
+        if (Number.isFinite(parsedBPM) && parsedBPM > 0) {
+          this.currentSong.bpm = parsedBPM;
+        }
+      }
+    },
     buildScaleAndTriads() {
       // console.log('Building scale and triads with key:', this.currentKey, 'and scale:', this.currentScale);
       if (this.currentKey && this.currentScale) {
@@ -325,7 +357,7 @@ export default {
       console.log('Adding step to phrase in App:', JSON.parse(JSON.stringify(step)));
       const stepKeyRoot = step?.keyRoot || this.currentKey;
       const stepKeyScale = step?.keyScale || this.currentScale;
-      const newStep = new Step(step.beats, cloneChord(step.chord), this.currentPhrase.steps.length, stepKeyRoot, stepKeyScale, this.majorScale);
+      const newStep = new Step(step.beats, cloneChord(step.chord), this.currentPhrase.steps.length, stepKeyRoot, stepKeyScale, this.majorScale, step?.meter || this.currentMeter || undefined);
       this.currentPhrase.steps.push(newStep);
       console.log('Updated phrase in App:', JSON.parse(JSON.stringify(this.currentPhrase)));
       console.log('Current values in App after adding step:', {
@@ -342,9 +374,9 @@ export default {
       const existingStep = this.currentPhrase.steps[stepIndex];
       const stepKeyRoot = step?.keyRoot || existingStep?.keyRoot || this.currentKey;
       const stepKeyScale = step?.keyScale || existingStep?.keyScale || this.currentScale;
-      const updatedStep = new Step(step.beats, cloneChord(step.chord), stepIndex, stepKeyRoot, stepKeyScale, this.majorScale);
+      const updatedStep = new Step(step.beats, cloneChord(step.chord), stepIndex, stepKeyRoot, stepKeyScale, this.majorScale, step?.meter || existingStep?.meter || this.currentMeter || undefined);
       this.currentPhrase.steps[stepIndex] = updatedStep;
-      this.currentStep = new Step(updatedStep.beats, cloneChord(updatedStep.chord), updatedStep.index, updatedStep.keyRoot, updatedStep.keyScale, updatedStep.majorScale);
+      this.currentStep = new Step(updatedStep.beats, cloneChord(updatedStep.chord), updatedStep.index, updatedStep.keyRoot, updatedStep.keyScale, updatedStep.majorScale, updatedStep.meter);
       console.log('Updated phrase in App:', JSON.parse(JSON.stringify(this.currentPhrase)));
     },
     handleShiftLeft() {
@@ -417,6 +449,7 @@ export default {
       this.playbackSessionId += 1;
       this.isPlaybackPaused = false;
       this.isPlayingSong = false;
+      this.playbackBeatPulse = 0;
       this.chordNotes = null;
     },
     sleep(ms) {
@@ -445,11 +478,21 @@ export default {
       }
       return true;
     },
+    getPlaybackBpm() {
+      const parsedBpm = Number(this.currentSong?.bpm);
+      if (Number.isFinite(parsedBpm) && parsedBpm > 0) {
+        return parsedBpm;
+      }
+      return 120;
+    },
+    getBeatDurationMs() {
+      return 60000 / this.getPlaybackBpm();
+    },
     async exportSongToMIDI() {
       console.log('Begin export song to MIDI process');
       const MidiWriter = require('midi-writer-js');
       const track = new MidiWriter.Track();
-      track.setTempo(120);
+      track.setTempo(this.currentSong.bpm || 120);
 
       for (const phrase of this.currentSong.phrases || []) {
         const repetitions = Number(phrase.repetitions) || 1;
@@ -493,7 +536,7 @@ export default {
       this.playbackSessionId = sessionId;
       this.isPlaybackPaused = false;
       this.isPlayingSong = true;
-      console.log('In App, play phrase');
+      console.log('In App, play song');
       this.chordNotes = null;
       for (let phrase of this.currentSong.phrases) {
         if (sessionId !== this.playbackSessionId) {
@@ -515,28 +558,43 @@ export default {
       }
     },
     async playPhrase(steps, sessionId = this.playbackSessionId) {
-      for (let step of steps) {
-        const canContinue = await this.waitIfPausedOrStopped(sessionId);
-        if (!canContinue) {
-          return false;
-        }
-        // Update key/scale once per step and rebuild the table before playing beats
-        if (step.keyRoot && step.keyScale) {
-          this.currentKey = step.keyRoot;
-          this.currentScale = step.keyScale;
-          this.buildScaleAndTriads();
-          await this.$nextTick(); // let Vue flush the table re-render before the first beat
-        }
-        console.log(`Playing chord: ${step.chord.romanNumeral(this.keyNotes)} for ${step.beats} beats`);
-        for (let i = 1; i <= step.beats; i++) {
-          this.chordNotes = step.chord.notes;
-          const keepGoing = await this.waitBeatDuration(sessionId, 500);
-          if (!keepGoing) {
+      const startedHere = !this.isPlayingSong;
+      if (startedHere) {
+        sessionId = this.playbackSessionId + 1;
+        this.playbackSessionId = sessionId;
+        this.isPlaybackPaused = false;
+        this.isPlayingSong = true;
+      }
+
+      try {
+        for (let step of steps) {
+          const canContinue = await this.waitIfPausedOrStopped(sessionId);
+          if (!canContinue) {
             return false;
           }
+          // Update key/scale once per step and rebuild the table before playing beats
+          if (step.keyRoot && step.keyScale) {
+            this.currentKey = step.keyRoot;
+            this.currentScale = step.keyScale;
+            this.buildScaleAndTriads();
+            await this.$nextTick(); // let Vue flush the table re-render before the first beat
+          }
+          console.log(`Playing chord: ${step.chord.romanNumeral(this.keyNotes)} for ${step.beats} beats`);
+          for (let i = 1; i <= step.beats; i++) {
+            this.playbackBeatPulse += 1;
+            this.chordNotes = step.chord.notes;
+            const keepGoing = await this.waitBeatDuration(sessionId, this.getBeatDurationMs());
+            if (!keepGoing) {
+              return false;
+            }
+          }
+        }
+        return true;
+      } finally {
+        if (startedHere && sessionId === this.playbackSessionId) {
+          this.isPlayingSong = false;
         }
       }
-      return true;
     },
     async saveSong() {
       console.log('Save song');
@@ -562,6 +620,7 @@ export default {
       const song = new Song();
       song.title = rawSong?.title || '';
       song.phrases = (rawSong?.phrases || []).map(rawPhrase => this.rehydratePhrase(rawPhrase));
+      song.bpm = Number(rawSong?.bpm) || 120;
       return song;
     },
     rehydratePhrase(rawPhrase) {
@@ -575,13 +634,16 @@ export default {
       return phrase;
     },
     rehydrateStep(rawStep) {
+      const rawMeter = rawStep?.meter;
+      const meter = rawMeter ? new Meter(Number(rawMeter.beatsPerMeasure) || 4, Number(rawMeter.beatUnit) || 4) : undefined;
       const step = new Step(
         Number(rawStep?.beats) || 1,
         cloneChord(rawStep?.chord),
         rawStep?.index,
         rawStep?.keyRoot || undefined,
         rawStep?.keyScale || undefined,
-        rawStep?.majorScale || undefined
+        rawStep?.majorScale || undefined,
+        meter
       );
       return step;
     },
@@ -647,5 +709,8 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+.compact-number {
+  width: 5ch;
 }
 </style>

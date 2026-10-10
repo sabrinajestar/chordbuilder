@@ -1,5 +1,8 @@
 <template>
   <div class="tonePlayer">
+    <span>
+      BPM: <input class="bpmInput" :value="bpmInput" placeholder="120" @input="handleBpmInput($event.target.value)">
+    </span>
     <button
       class="iconButton"
       @click="toggleSound"
@@ -13,6 +16,21 @@
           <path d="M11.536 14.01A8.47 8.47 0 0 0 14.026 8a8.47 8.47 0 0 0-2.49-6.01l-.708.707A7.48 7.48 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303z"/>
           <path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.48 5.48 0 0 1 11.025 8a5.48 5.48 0 0 1-1.61 3.89z"/>
           <path d="M10.025 8a4.5 4.5 0 0 1-1.318 3.182L8 10.475A3.5 3.5 0 0 0 9.025 8c0-.966-.392-1.841-1.025-2.475l.707-.707A4.5 4.5 0 0 1 10.025 8M7 4a.5.5 0 0 0-.812-.39L3.825 5.5H1.5A.5.5 0 0 0 1 6v4a.5.5 0 0 0 .5.5h2.325l2.363 1.89A.5.5 0 0 0 7 12zM4.312 6.39 6 5.04v5.92L4.312 9.61A.5.5 0 0 0 4 9.5H2v-3h2a.5.5 0 0 0 .312-.11"/>
+        </g>
+      </svg>
+    </button>
+
+    <button class="iconButton" @click="toggleMetronome" aria-label="Toggle Metronome" title="Toggle Metronome">
+      <svg :fill="metronomeEnabled ? '#000000' : '#BDBDBD'" height="24" width="24" version="1.1" id="Icons" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" xml:space="preserve">
+        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_iconCarrier"> 
+          <g> 
+            <path d="M16,21c0.3,0,0.6-0.1,0.8-0.4l13-17c0.3-0.4,0.3-1.1-0.2-1.4c-0.4-0.3-1.1-0.3-1.4,0.2l-5.7,7.5l-1-4.8 c-0.4-1.8-2-3.1-3.8-3.1h-3.4c-1.8,0-3.4,1.2-3.8,3L5.8,25.5c-0.3,1.1,0,2.2,0.7,3.1C7.2,29.5,8.2,30,9.3,30h13.3 c1.1,0,2.2-0.5,2.9-1.4c0.7-0.9,0.9-2,0.7-3.1l-2.5-9.7c-0.1-0.5-0.7-0.9-1.2-0.7c-0.5,0.1-0.9,0.7-0.7,1.2l1.5,5.8H8.6l3.8-16.5 c0.2-0.9,1-1.5,1.8-1.5h3.4c0.9,0,1.7,0.6,1.8,1.5l1.4,6.5l-5.6,7.4c-0.3,0.4-0.3,1.1,0.2,1.4C15.6,20.9,15.8,21,16,21z"></path>
+            <path d="M15,8h2c0.6,0,1-0.4,1-1s-0.4-1-1-1h-2c-0.6,0-1,0.4-1,1S14.4,8,15,8z"></path> 
+            <path d="M15,11h2c0.6,0,1-0.4,1-1s-0.4-1-1-1h-2c-0.6,0-1,0.4-1,1S14.4,11,15,11z"></path> 
+            <path d="M15,14h2c0.6,0,1-0.4,1-1s-0.4-1-1-1h-2c-0.6,0-1,0.4-1,1S14.4,14,15,14z"></path> 
+          </g> 
         </g>
       </svg>
     </button>
@@ -38,9 +56,10 @@
 
     <button class="iconButton" @click="$emit('delete-song')" aria-label="Delete song" title="Delete song">
       <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <g transform="translate(2,2)">
-          <line x1="0" y1="0" x2="20" y2="20" style="stroke:red;stroke-width:5" />
-          <line x1="20" y1="0" x2="0" y2="20" style="stroke:red;stroke-width:5" />
+        <!-- based on https://icons.getbootstrap.com/icons/trash/ -->
+        <g transform="translate(2,2) scale(1.25)">
+          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+          <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
         </g>
       </svg>
     </button>
@@ -111,17 +130,64 @@ const sampler = new Tone.Sampler({
     release: 1,
     baseUrl: "https://tonejs.github.io/audio/salamander/",
   }).toDestination();
+const metronomeSynth = new Tone.Synth({
+  oscillator: { type: 'triangle' },
+  envelope: {
+    attack: 0.001,
+    decay: 0.05,
+    sustain: 0,
+    release: 0.05,
+  },
+}).toDestination();
 var sound = false;
 
 export default {
   name: 'TonePlayer',
   props: {
-    chordNotes: Array
+    chordNotes: Array,
+    songBpm: {
+      type: Number,
+      default: 120
+    },
+    isPlayingSong: {
+      type: Boolean,
+      default: false
+    },
+    isPlaybackPaused: {
+      type: Boolean,
+      default: false
+    },
+    beatPulse: {
+      type: Number,
+      default: 0
+    }
   },
   data() {
     return {
       soundEnabled: false,
+      bpmInput: '120',
+      metronomeEnabled: false
     };
+  },
+  watch: {
+    songBpm: {
+      immediate: true,
+      handler(newBpm) {
+        const parsed = Number(newBpm);
+        if (Number.isFinite(parsed) && parsed > 0) {
+          this.bpmInput = String(parsed);
+        }
+      }
+    },
+    beatPulse() {
+      this.triggerMetronomeClick();
+    },
+    chordNotes: {
+      immediate: true,
+      handler() {
+        this.playChord();
+      }
+    }
   },
   methods: {
     toggleSound() {
@@ -146,14 +212,31 @@ export default {
     importSongFromFile() {
       console.log('Emit import song from file event');
       this.$emit('import-song-from-file');
-    }
-  },
-  watch: {
-    chordNotes: {
-      immediate: true,
-      handler() {
-        this.playChord();
+    },
+    handleBpmInput(rawValue) {
+      this.bpmInput = rawValue;
+      this.updateSongBPM(rawValue);
+    },
+    updateSongBPM(bpm) {
+      const parsedBPM = parseInt(bpm, 10);
+      if (Number.isFinite(parsedBPM) && parsedBPM > 0) {
+        this.$emit('update-song-bpm', parsedBPM);
       }
+    },
+    async ensureAudioStarted() {
+      if (Tone.context.state !== 'running') {
+        await Tone.start();
+      }
+    },
+    async triggerMetronomeClick() {
+      if (!this.metronomeEnabled || !this.isPlayingSong || this.isPlaybackPaused) {
+        return;
+      }
+      await this.ensureAudioStarted();
+      metronomeSynth.triggerAttackRelease('C5', '32n');
+    },
+    toggleMetronome() {
+      this.metronomeEnabled = !this.metronomeEnabled;
     }
   }
 }
@@ -175,7 +258,10 @@ li {
 a {
   color: #42b983;
 }
-
+.bpmInput {
+  width: 60px;
+  margin-right: 10px;
+}
 .soundToggle {
   margin-top: 10px;
 }
